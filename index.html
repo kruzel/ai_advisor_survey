@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Investor Sophistication & Execution Audit</title>
+  <style>
+    :root {
+      --primary: #1a3a5c;
+      --accent: #2e86de;
+      --accent-hover: #1b6dbf;
+      --bg: #f4f6f9;
+      --card: #ffffff;
+      --border: #dce1e8;
+      --text: #2c3e50;
+      --muted: #7f8c8d;
+      --success: #27ae60;
+      --gold: #f1c40f;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      line-height: 1.6;
+      min-height: 100vh;
+    }
+
+    .container {
+      max-width: 780px;
+      margin: 0 auto;
+      padding: 24px 16px 60px;
+    }
+
+    /* Header */
+    .survey-header {
+      background: linear-gradient(135deg, var(--primary), #2c5f8a);
+      color: #fff;
+      border-radius: 12px;
+      padding: 36px 32px;
+      margin-bottom: 28px;
+      text-align: center;
+      box-shadow: 0 4px 20px rgba(26, 58, 92, .25);
+    }
+    .survey-header h1 { font-size: 1.65rem; font-weight: 700; margin-bottom: 8px; }
+    .survey-header p  { font-size: .95rem; opacity: .85; }
+
+    /* Progress */
+    .progress-wrap {
+      background: var(--card);
+      border-radius: 10px;
+      padding: 16px 20px;
+      margin-bottom: 24px;
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+    .progress-label { font-size: .85rem; color: var(--muted); margin-bottom: 6px; }
+    .progress-bar { height: 8px; border-radius: 4px; background: #e0e5ec; overflow: hidden; }
+    .progress-fill { height: 100%; border-radius: 4px; background: var(--accent); transition: width .4s ease; }
+
+    /* Section */
+    .section-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 28px 28px 20px;
+      margin-bottom: 20px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.06);
+      border-left: 4px solid var(--accent);
+    }
+    .section-title {
+      font-size: .8rem;
+      text-transform: uppercase;
+      letter-spacing: 1.2px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 18px;
+    }
+
+    /* Question */
+    .question { margin-bottom: 28px; }
+    .question:last-child { margin-bottom: 8px; }
+    .question-label {
+      font-size: 1.05rem;
+      font-weight: 600;
+      margin-bottom: 14px;
+      display: block;
+    }
+    .question-note {
+      font-size: .85rem;
+      color: var(--muted);
+      font-style: italic;
+      margin-bottom: 12px;
+    }
+
+    /* Radio options */
+    .options-list { list-style: none; }
+    .options-list li { margin-bottom: 8px; }
+    .option-label {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px 16px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all .2s ease;
+      font-size: .93rem;
+    }
+    .option-label:hover { border-color: var(--accent); background: #f0f7ff; }
+    .option-label input[type="radio"] { margin-top: 3px; accent-color: var(--accent); flex-shrink: 0; }
+    .option-label.selected { border-color: var(--accent); background: #e8f2fc; }
+
+    .option-number {
+      font-weight: 700;
+      color: var(--accent);
+      min-width: 32px;
+      flex-shrink: 0;
+    }
+
+    /* Contact fields */
+    .contact-fields { display: flex; flex-direction: column; gap: 12px; }
+    .contact-field label {
+      font-size: .9rem;
+      font-weight: 600;
+      display: block;
+      margin-bottom: 4px;
+    }
+    .contact-field label .optional { font-weight: 400; color: var(--muted); font-size: .82rem; }
+    .contact-field input {
+      width: 100%;
+      padding: 10px 14px;
+      border: 2px solid var(--border);
+      border-radius: 8px;
+      font-size: .93rem;
+      font-family: inherit;
+      transition: border-color .2s;
+      outline: none;
+    }
+    .contact-field input:focus { border-color: var(--accent); }
+
+    /* Submit */
+    .btn-submit {
+      display: block;
+      width: 100%;
+      padding: 16px;
+      background: var(--accent);
+      color: #fff;
+      font-size: 1.05rem;
+      font-weight: 600;
+      border: none;
+      border-radius: 10px;
+      cursor: pointer;
+      transition: background .2s;
+      margin-top: 8px;
+    }
+    .btn-submit:hover { background: var(--accent-hover); }
+    .btn-submit:disabled { background: #bdc3c7; cursor: not-allowed; }
+
+    /* Validation */
+    .question.invalid .question-label { color: #e74c3c; }
+    .question.invalid .option-label { border-color: #f5c6cb; }
+    .validation-msg {
+      display: none;
+      color: #e74c3c;
+      font-size: .85rem;
+      margin-top: 6px;
+    }
+    .question.invalid .validation-msg { display: block; }
+
+    /* ───── Results ───── */
+    #results { display: none; }
+
+    .result-header {
+      background: linear-gradient(135deg, var(--primary), #2c5f8a);
+      color: #fff;
+      border-radius: 12px;
+      padding: 36px 32px;
+      text-align: center;
+      margin-bottom: 24px;
+      box-shadow: 0 4px 20px rgba(26,58,92,.25);
+    }
+    .result-header h2 { font-size: 1.5rem; margin-bottom: 12px; }
+    .score-circle {
+      width: 110px; height: 110px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.15);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      margin: 0 auto 16px;
+      border: 4px solid rgba(255,255,255,.4);
+    }
+    .score-circle .score-num { font-size: 2.6rem; font-weight: 800; line-height: 1; }
+    .score-circle .score-of  { font-size: .8rem; opacity: .7; }
+    .persona-badge {
+      display: inline-block;
+      background: var(--gold);
+      color: var(--primary);
+      padding: 6px 20px;
+      border-radius: 20px;
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 8px;
+    }
+    .persona-desc { font-size: .93rem; opacity: .85; max-width: 560px; margin: 0 auto; }
+
+    /* Breakdown */
+    .breakdown-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.06);
+    }
+    .breakdown-card h3 { font-size: 1.05rem; margin-bottom: 16px; color: var(--primary); }
+    .breakdown-row {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      gap: 12px;
+    }
+    .breakdown-row:last-child { border-bottom: none; }
+    .breakdown-q { font-weight: 600; font-size: .9rem; flex: 0 0 auto; color: var(--accent); min-width: 28px; }
+    .breakdown-answer { flex: 1; font-size: .9rem; }
+    .breakdown-pts {
+      flex: 0 0 auto;
+      background: #e8f2fc;
+      color: var(--accent);
+      font-weight: 700;
+      font-size: .85rem;
+      padding: 2px 10px;
+      border-radius: 12px;
+      white-space: nowrap;
+    }
+
+    /* Matrix table */
+    .matrix-table { width: 100%; border-collapse: collapse; font-size: .88rem; margin-top: 8px; }
+    .matrix-table th {
+      background: var(--primary);
+      color: #fff;
+      padding: 10px 12px;
+      text-align: left;
+      font-weight: 600;
+    }
+    .matrix-table td { padding: 10px 12px; border-bottom: 1px solid var(--border); }
+    .matrix-table tr.active-row { background: #e8f2fc; font-weight: 600; }
+    .matrix-table tr:last-child td { border-bottom: none; }
+
+    .btn-restart {
+      display: block;
+      width: 100%;
+      padding: 14px;
+      background: transparent;
+      color: var(--accent);
+      font-size: .95rem;
+      font-weight: 600;
+      border: 2px solid var(--accent);
+      border-radius: 10px;
+      cursor: pointer;
+      margin-top: 12px;
+      transition: all .2s;
+    }
+    .btn-restart:hover { background: var(--accent); color: #fff; }
+
+    @media (max-width: 600px) {
+      .container { padding: 12px 8px 40px; }
+      .section-card, .breakdown-card { padding: 18px 14px 14px; }
+      .survey-header, .result-header { padding: 28px 18px; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- ════════════ SURVEY FORM ════════════ -->
+<div class="container" id="survey">
+
+  <div class="survey-header">
+    <h1>Investor Sophistication &amp; Execution Audit</h1>
+    <p>Answer the following 9 questions to discover your investor profile.</p>
+  </div>
+
+  <div class="progress-wrap">
+    <div class="progress-label">Progress: <span id="progressText">0 / 9</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
+  </div>
+
+  <form id="surveyForm" novalidate>
+
+    <!-- ── Contact Info ── -->
+    <div class="section-card">
+      <div class="section-title">Your Information <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
+      <div class="contact-fields">
+        <div class="contact-field">
+          <label>Name <span class="optional">(optional)</span></label>
+          <input type="text" id="userName" placeholder="e.g. John Smith" autocomplete="name" />
+        </div>
+        <div class="contact-field">
+          <label>Email <span class="optional">(optional)</span></label>
+          <input type="email" id="userEmail" placeholder="e.g. john@example.com" autocomplete="email" />
+        </div>
+        <div class="contact-field">
+          <label>Phone <span class="optional">(optional)</span></label>
+          <input type="tel" id="userPhone" placeholder="e.g. +1 555-123-4567" autocomplete="tel" />
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Section 1 ── -->
+    <div class="section-card">
+      <div class="section-title">Section 1 — Profile &amp; Management</div>
+
+      <!-- Q1 -->
+      <div class="question" data-q="1">
+        <span class="question-label">1. How do you currently manage your liquid assets?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q1" value="1" data-pts="1" /><span class="option-number">1.1</span><span>The Delegator: Assets are managed by a professional firm or advisor with minimal personal involvement.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q1" value="2" data-pts="2" /><span class="option-number">1.2</span><span>The Hybrid: Managed via a wealth manager, but with an active personal "satellite" portfolio.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q1" value="3" data-pts="2" /><span class="option-number">1.3</span><span>The Pure DIY: Total personal management of all accounts through brokerage platforms.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q1" value="4" data-pts="0" /><span class="option-number">1.4</span><span>The Inert Investor: Capital is held in accounts but rarely reviewed or traded.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+
+      <!-- Q2 -->
+      <div class="question" data-q="2">
+        <span class="question-label">2. Mental Overhead Scale (1–10)</span>
+        <p class="question-note">How much time and anxiety does your portfolio consume?</p>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q2" value="1" data-pts="2" /><span class="option-number">2.1</span><span>Score 1–3: Portfolio is managed systematically with low stress.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q2" value="2" data-pts="1" /><span class="option-number">2.2</span><span>Score 4–7: Regular monitoring is required, occasionally causing distraction.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q2" value="3" data-pts="0" /><span class="option-number">2.3</span><span>Score 8–10: Constant monitoring of news and apps is required to feel secure.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+    </div>
+
+    <!-- ── Section 2 ── -->
+    <div class="section-card">
+      <div class="section-title">Section 2 — Knowledge &amp; Strategy</div>
+
+      <!-- Q3 -->
+      <div class="question" data-q="3">
+        <span class="question-label">3. Which instruments have you actively managed?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q3" value="1" data-pts="2" /><span class="option-number">3.1</span><span>Private Equity, Structured Products, or Delta-hedged Options.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q3" value="2" data-pts="1" /><span class="option-number">3.2</span><span>Tax-advantaged vehicles (e.g., Opportunity Zones) or Alternative Credit.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q3" value="3" data-pts="0" /><span class="option-number">3.3</span><span>Standard ETFs and Blue-Chip Equities only.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+
+      <!-- Q4 -->
+      <div class="question" data-q="4">
+        <span class="question-label">4. How would you describe your primary "Edge"?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q4" value="1" data-pts="2" /><span class="option-number">4.1</span><span>Structural or Information: Access to unique deal flow, niche data, or tax/legal optimization.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q4" value="2" data-pts="1" /><span class="option-number">4.2</span><span>Analytical: Success based on fundamental valuation or macroeconomic cycle analysis.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q4" value="3" data-pts="0" /><span class="option-number">4.3</span><span>No Edge / Momentum: Following market trends or relying on broad market growth.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+    </div>
+
+    <!-- ── Section 3 ── -->
+    <div class="section-card">
+      <div class="section-title">Section 3 — Risk &amp; Diversification</div>
+
+      <!-- Q5 -->
+      <div class="question" data-q="5">
+        <span class="question-label">5. How do you define "Diversification"?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q5" value="1" data-pts="2" /><span class="option-number">5.1</span><span>By Correlation: Selection of assets based on how they move in relation to one another.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q5" value="2" data-pts="1" /><span class="option-number">5.2</span><span>By Asset Class / Geography: Spreading capital across different sectors and regions.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q5" value="3" data-pts="0" /><span class="option-number">5.3</span><span>By "Feeling" / Tickers: Owning a large number of individual stocks to reduce concentration.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+
+      <!-- Q6 -->
+      <div class="question" data-q="6">
+        <span class="question-label">6. Mechanism for controlling "Downside Risk"?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q6" value="1" data-pts="2" /><span class="option-number">6.1</span><span>Portfolio Insurance: Systematic use of tail-risk hedges, puts, or volatility instruments.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q6" value="2" data-pts="1" /><span class="option-number">6.2</span><span>Stop-Losses: Automatic exit orders at pre-defined price targets.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q6" value="3" data-pts="0" /><span class="option-number">6.3</span><span>Manual Intervention: Selling positions based on news flow or market sentiment.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+
+      <!-- Q7 -->
+      <div class="question" data-q="7">
+        <span class="question-label">7. How do you handle "Hidden Correlations"?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q7" value="1" data-pts="2" /><span class="option-number">7.1</span><span>Use of software to track the Beta and Correlation Matrix of the entire portfolio.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q7" value="2" data-pts="1" /><span class="option-number">7.2</span><span>Manual awareness of correlations without the use of dedicated calculation tools.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q7" value="3" data-pts="0" /><span class="option-number">7.3</span><span>Reliance on broad diversification without specific correlation monitoring.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+    </div>
+
+    <!-- ── Section 4 ── -->
+    <div class="section-card">
+      <div class="section-title">Section 4 — The Reaction Gap</div>
+
+      <!-- Q8 -->
+      <div class="question" data-q="8">
+        <span class="question-label">8. Reaction time to major macro events?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q8" value="1" data-pts="2" /><span class="option-number">8.1</span><span>Minutes: Immediate execution via algorithmic or direct market access.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q8" value="2" data-pts="1" /><span class="option-number">8.2</span><span>Hours: Adjustments made during the same trading day or after work.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q8" value="3" data-pts="0" /><span class="option-number">8.3</span><span>Days / Weeks: Adjustments made after significant research or a scheduled advisor meeting.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+
+      <!-- Q9 -->
+      <div class="question" data-q="9">
+        <span class="question-label">9. Biggest "Execution Regret"?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q9" value="1" data-pts="2" /><span class="option-number">9.1</span><span>Complexity: Desired a sophisticated hedge but lacked the tools to execute the math.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q9" value="2" data-pts="1" /><span class="option-number">9.2</span><span>Omission: Identified the correct move but lacked the time to act on it.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q9" value="3" data-pts="0" /><span class="option-number">9.3</span><span>Commission: Executed a trade based on an emotional reaction to market noise.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+    </div>
+
+    <button type="submit" class="btn-submit" id="btnSubmit">Submit &amp; See My Score</button>
+  </form>
+</div>
+
+<!-- ════════════ RESULTS ════════════ -->
+<div class="container" id="results">
+  <div class="result-header">
+    <h2>Your Results</h2>
+    <div class="score-circle">
+      <span class="score-num" id="finalScore">0</span>
+      <span class="score-of">/ 10</span>
+    </div>
+    <div class="persona-badge" id="personaName"></div>
+    <p class="persona-desc" id="personaDesc"></p>
+  </div>
+
+  <div class="breakdown-card">
+    <h3>Answer Breakdown</h3>
+    <div id="breakdownList"></div>
+  </div>
+
+  <div class="breakdown-card">
+    <h3>The Sophistication Matrix</h3>
+    <table class="matrix-table" id="matrixTable">
+      <thead><tr><th>Score</th><th>Persona</th><th>Description</th></tr></thead>
+      <tbody>
+        <tr data-range="9-10"><td>9 – 10</td><td>The Institutionalist</td><td>Focuses on efficiency and system-building.</td></tr>
+        <tr data-range="7-8"><td>7 – 8</td><td>The Advanced Architect</td><td>High knowledge, hindered by execution latency.</td></tr>
+        <tr data-range="5-6"><td>5 – 6</td><td>The Informed Generalist</td><td>Follows best practices but lacks protective depth.</td></tr>
+        <tr data-range="3-4"><td>3 – 4</td><td>The Reactive Investor</td><td>Strategy is driven by market moves rather than logic.</td></tr>
+        <tr data-range="0-2"><td>0 – 2</td><td>The At-Risk Investor</td><td>High exposure to volatility and operational leakage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <button class="btn-submit" id="btnEditAnswers" style="margin-top:12px">Edit My Answers</button>
+</div>
+
+<script>
+(function () {
+  const STORAGE_KEY = 'surveySubmission';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4gMVoB9McqcVOAZrcmafXr6id4GRFIPyT_YuJvJXjk8D7iqO-froEGdzYs2Iv06uqmw/exec';
+
+  const questionLabels = {
+    1: 'How do you currently manage your liquid assets?',
+    2: 'Mental Overhead Scale',
+    3: 'Which instruments have you actively managed?',
+    4: 'How would you describe your primary "Edge"?',
+    5: 'How do you define "Diversification"?',
+    6: 'Mechanism for controlling "Downside Risk"?',
+    7: 'How do you handle "Hidden Correlations"?',
+    8: 'Reaction time to major macro events?',
+    9: 'Biggest "Execution Regret"?'
+  };
+
+  const answerLabels = {
+    1: { 1: '1.1 – The Delegator',  2: '1.2 – The Hybrid',  3: '1.3 – The Pure DIY',  4: '1.4 – The Inert Investor' },
+    2: { 1: '2.1 – Score 1–3 (Low stress)',  2: '2.2 – Score 4–7 (Moderate)',  3: '2.3 – Score 8–10 (High anxiety)' },
+    3: { 1: '3.1 – PE / Structured / Delta-hedged',  2: '3.2 – Tax-advantaged / Alt Credit',  3: '3.3 – Standard ETFs & Blue-Chips' },
+    4: { 1: '4.1 – Structural or Information',  2: '4.2 – Analytical',  3: '4.3 – No Edge / Momentum' },
+    5: { 1: '5.1 – By Correlation',  2: '5.2 – By Asset Class / Geography',  3: '5.3 – By "Feeling" / Tickers' },
+    6: { 1: '6.1 – Portfolio Insurance',  2: '6.2 – Stop-Losses',  3: '6.3 – Manual Intervention' },
+    7: { 1: '7.1 – Software (Beta/Correlation Matrix)',  2: '7.2 – Manual awareness',  3: '7.3 – Broad diversification only' },
+    8: { 1: '8.1 – Minutes',  2: '8.2 – Hours',  3: '8.3 – Days / Weeks' },
+    9: { 1: '9.1 – Complexity',  2: '9.2 – Omission',  3: '9.3 – Commission' }
+  };
+
+  const personas = [
+    { min: 9, max: 10, name: 'The Institutionalist',   desc: 'Focuses on efficiency and system-building.' },
+    { min: 7, max: 8,  name: 'The Advanced Architect', desc: 'High knowledge, hindered by execution latency.' },
+    { min: 5, max: 6,  name: 'The Informed Generalist', desc: 'Follows best practices but lacks protective depth.' },
+    { min: 3, max: 4,  name: 'The Reactive Investor',   desc: 'Strategy is driven by market moves rather than logic.' },
+    { min: 0, max: 2,  name: 'The At-Risk Investor',    desc: 'High exposure to volatility and operational leakage.' }
+  ];
+
+  // ── Highlight selected option ──
+  document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
+    radio.addEventListener('change', () => {
+      const parent = radio.closest('.options-list');
+      parent.querySelectorAll('.option-label').forEach(l => l.classList.remove('selected'));
+      radio.closest('.option-label').classList.add('selected');
+      radio.closest('.question').classList.remove('invalid');
+      updateProgress();
+    });
+  });
+
+  // ── Progress ──
+  function updateProgress() {
+    let answered = 0;
+    for (let i = 1; i <= 9; i++) {
+      if (document.querySelector(`input[name="q${i}"]:checked`)) answered++;
+    }
+    document.getElementById('progressText').textContent = `${answered} / 9`;
+    document.getElementById('progressFill').style.width = `${(answered / 9) * 100}%`;
+  }
+
+  // ── Restore previous answers into the form ──
+  function restoreForm(saved) {
+    if (!saved) return;
+    document.getElementById('userName').value = saved.name || '';
+    document.getElementById('userEmail').value = saved.email || '';
+    document.getElementById('userPhone').value = saved.phone || '';
+    if (saved.selections) {
+      Object.entries(saved.selections).forEach(([name, value]) => {
+        const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
+        if (radio) {
+          radio.checked = true;
+          radio.closest('.option-label').classList.add('selected');
+        }
+      });
+    }
+    updateProgress();
+  }
+
+  // ── Show results page ──
+  function showResults(record) {
+    const persona = personas.find(p => record.finalScore >= p.min && record.finalScore <= p.max) || personas[personas.length - 1];
+    document.getElementById('survey').style.display = 'none';
+    document.getElementById('results').style.display = 'block';
+    document.getElementById('finalScore').textContent = record.finalScore % 1 === 0 ? record.finalScore : record.finalScore.toFixed(1);
+    document.getElementById('personaName').textContent = persona.name;
+    document.getElementById('personaDesc').textContent = persona.desc;
+
+    const list = document.getElementById('breakdownList');
+    list.innerHTML = record.answers.map(r => `
+      <div class="breakdown-row">
+        <span class="breakdown-q">Q${r.question}</span>
+        <span class="breakdown-answer"><strong>${r.questionLabel}</strong><br/>${r.answer}</span>
+        <span class="breakdown-pts">${r.points} pt${r.points !== 1 ? 's' : ''}</span>
+      </div>
+    `).join('');
+
+    document.querySelectorAll('#matrixTable tbody tr').forEach(tr => {
+      tr.classList.remove('active-row');
+      const [lo, hi] = tr.dataset.range.split('-').map(Number);
+      if (record.finalScore >= lo && record.finalScore <= hi) tr.classList.add('active-row');
+    });
+
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  // ── Send to Google Sheets ──
+  function sendToSheet(payload) {
+    fetch(GOOGLE_SCRIPT_URL, {
+      method: 'POST',
+      mode: 'no-cors',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    }).catch(err => console.warn('Sheet save failed:', err));
+  }
+
+  // ── Check for existing submission on load ──
+  const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+  if (existing) {
+    showResults(existing);
+  } else {
+    updateProgress();
+  }
+
+  // ── Edit Answers button ──
+  document.getElementById('btnEditAnswers').addEventListener('click', function () {
+    document.getElementById('results').style.display = 'none';
+    document.getElementById('survey').style.display = 'block';
+    const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+    restoreForm(saved);
+    document.getElementById('btnSubmit').textContent = 'Update & See My Score';
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  });
+
+  // ── Submit / Update ──
+  document.getElementById('surveyForm').addEventListener('submit', function (e) {
+    e.preventDefault();
+
+    // Validate questions
+    let valid = true;
+    for (let i = 1; i <= 9; i++) {
+      const q = document.querySelector(`.question[data-q="${i}"]`);
+      if (!document.querySelector(`input[name="q${i}"]:checked`)) {
+        q.classList.add('invalid');
+        valid = false;
+      } else {
+        q.classList.remove('invalid');
+      }
+    }
+    if (!valid) {
+      document.querySelector('.question.invalid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      return;
+    }
+
+    // Gather contact info
+    const userName  = document.getElementById('userName').value.trim();
+    const userEmail = document.getElementById('userEmail').value.trim();
+    const userPhone = document.getElementById('userPhone').value.trim();
+
+    // Collect answers
+    const results = [];
+    const selections = {};
+    let totalRaw = 0;
+
+    for (let i = 1; i <= 9; i++) {
+      const checked = document.querySelector(`input[name="q${i}"]:checked`);
+      const choiceValue = checked.value;
+      const pts = Number(checked.dataset.pts);
+      const label = answerLabels[i][choiceValue];
+      totalRaw += pts;
+      results.push({ question: i, questionLabel: questionLabels[i], answer: label, points: pts });
+      selections[`q${i}`] = choiceValue;
+    }
+
+    const finalScore = Math.round(totalRaw / 2 * 10) / 10;
+    const persona = personas.find(p => finalScore >= p.min && finalScore <= p.max) || personas[personas.length - 1];
+    const isUpdate = !!localStorage.getItem(STORAGE_KEY);
+
+    // Build record
+    const record = {
+      timestamp: new Date().toISOString(),
+      name: userName,
+      email: userEmail,
+      phone: userPhone,
+      totalRaw,
+      finalScore,
+      persona: persona.name,
+      answers: results,
+      selections // keep raw values for form restoration
+    };
+
+    // Save to localStorage (overwrite — one submission per browser)
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(record));
+
+    // Build sheet payload
+    const payload = {
+      timestamp: record.timestamp,
+      name: userName,
+      email: userEmail,
+      phone: userPhone,
+      finalScore: record.finalScore,
+      totalRaw: record.totalRaw,
+      persona: record.persona,
+      isUpdate: isUpdate
+    };
+    results.forEach(r => {
+      payload[`Q${r.question}_answer`] = r.answer;
+      payload[`Q${r.question}_pts`] = r.points;
+    });
+    sendToSheet(payload);
+
+    showResults(record);
+    console.log(isUpdate ? 'Survey updated:' : 'Survey submitted:', record);
+  });
+})();
+</script>
+</body>
+</html>
