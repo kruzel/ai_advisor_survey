@@ -167,6 +167,14 @@
       margin-top: 6px;
     }
     .question.invalid .validation-msg { display: block; }
+    .contact-field.invalid input { border-color: var(--danger); }
+    .contact-field.invalid .validation-msg { display: block; }
+    .contact-field .validation-msg {
+      display: none;
+      color: var(--danger);
+      font-size: .85rem;
+      margin-top: 6px;
+    }
 
     /* ───── Results ───── */
     #results { display: none; }
@@ -323,8 +331,9 @@
       <div class="section-title">Your Information <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span></div>
       <div class="contact-fields">
         <div class="contact-field">
-          <label>Name <span class="optional">(optional)</span></label>
-          <input type="text" id="userName" placeholder="e.g. John Smith" autocomplete="name" />
+          <label>Name</label>
+          <input type="text" id="userName" placeholder="e.g. John Smith" autocomplete="name" required />
+          <div class="validation-msg" id="nameValidation">Please enter your name.</div>
         </div>
         <div class="contact-field">
           <label>Email <span class="optional">(optional)</span></label>
@@ -605,6 +614,7 @@
       validationMsg: 'Please select an answer.',
       contactTitle: 'Your Information <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span>',
       nameLabel: 'Name',
+      nameRequired: 'Please enter your name.',
       emailLabel: 'Email',
       phoneLabel: 'Phone',
       optional: '(optional)',
@@ -738,6 +748,7 @@
       validationMsg: '\u05D0\u05E0\u05D0 \u05D1\u05D7\u05E8 \u05EA\u05E9\u05D5\u05D1\u05D4.',
       contactTitle: '\u05D4\u05E4\u05E8\u05D8\u05D9\u05DD \u05E9\u05DC\u05DA <span style="font-weight:400;text-transform:none;letter-spacing:0">(\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)</span>',
       nameLabel: '\u05E9\u05DD',
+      nameRequired: '\u05D0\u05E0\u05D0 \u05D4\u05D6\u05DF \u05D0\u05EA \u05E9\u05DE\u05DA.',
       emailLabel: '\u05D3\u05D5\u05D0"\u05DC',
       phoneLabel: '\u05D8\u05DC\u05E4\u05D5\u05DF',
       optional: '(\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)',
@@ -894,8 +905,9 @@
     var sectionCards = document.querySelectorAll('#surveyForm .section-card');
     sectionCards[0].querySelector('.section-title').innerHTML = t.contactTitle;
     var contactFields = sectionCards[0].querySelectorAll('.contact-field');
-    contactFields[0].querySelector('label').innerHTML = t.nameLabel + ' <span class="optional">' + t.optional + '</span>';
+    contactFields[0].querySelector('label').innerHTML = t.nameLabel;
     contactFields[0].querySelector('input').placeholder = t.namePlaceholder;
+    document.getElementById('nameValidation').textContent = t.nameRequired;
     contactFields[1].querySelector('label').innerHTML = t.emailLabel + ' <span class="optional">' + t.optional + '</span>';
     contactFields[1].querySelector('input').placeholder = t.emailPlaceholder;
     contactFields[2].querySelector('label').innerHTML = t.phoneLabel + ' <span class="optional">' + t.optional + '</span>';
@@ -1063,6 +1075,11 @@
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
+  // Clear name validation on input
+  document.getElementById('userName').addEventListener('input', function () {
+    this.closest('.contact-field').classList.remove('invalid');
+  });
+
   // ── Submit / Update ──
   document.getElementById('surveyForm').addEventListener('submit', function (e) {
     e.preventDefault();
@@ -1078,13 +1095,23 @@
         q.classList.remove('invalid');
       }
     }
+    // Validate name
+    const nameField = document.getElementById('userName');
+    const nameVal = nameField.value.trim();
+    if (!nameVal) {
+      nameField.closest('.contact-field').classList.add('invalid');
+      valid = false;
+    } else {
+      nameField.closest('.contact-field').classList.remove('invalid');
+    }
     if (!valid) {
-      document.querySelector('.question.invalid').scrollIntoView({ behavior: 'smooth', block: 'center' });
+      const firstInvalid = document.querySelector('.question.invalid, .contact-field.invalid');
+      if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
       return;
     }
 
     // Gather contact info
-    const userName  = document.getElementById('userName').value.trim();
+    const userName  = nameVal;
     const userEmail = document.getElementById('userEmail').value.trim();
     const userPhone = document.getElementById('userPhone').value.trim();
 
