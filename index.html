@@ -269,6 +269,35 @@
       .section-card, .breakdown-card { padding: 18px 14px 14px; }
       .survey-header, .result-header { padding: 28px 18px; }
     }
+
+    /* RTL */
+    [dir="rtl"] body { text-align: right; }
+    [dir="rtl"] .section-card { border-left: none; border-right: 4px solid var(--accent); }
+    [dir="rtl"] .option-label { flex-direction: row-reverse; text-align: right; }
+    [dir="rtl"] .breakdown-row { flex-direction: row-reverse; }
+    [dir="rtl"] .matrix-table th,
+    [dir="rtl"] .matrix-table td { text-align: right; }
+    [dir="rtl"] .contact-field input { text-align: right; direction: rtl; }
+
+    /* Language toggle */
+    .survey-header { position: relative; }
+    .lang-toggle {
+      position: absolute;
+      top: 12px;
+      right: 12px;
+      background: rgba(255,255,255,.2);
+      color: #fff;
+      border: 2px solid rgba(255,255,255,.4);
+      border-radius: 8px;
+      padding: 6px 14px;
+      font-size: .85rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: background .2s;
+      font-family: inherit;
+    }
+    .lang-toggle:hover { background: rgba(255,255,255,.3); }
+    [dir="rtl"] .lang-toggle { right: auto; left: 12px; }
   </style>
 </head>
 <body>
@@ -277,12 +306,13 @@
 <div class="container" id="survey">
 
   <div class="survey-header">
+    <button type="button" class="lang-toggle" id="langToggle">עב</button>
     <h1>Investment Habits Questionnaire</h1>
-    <p>Answer the following 9 questions to discover your investor profile.</p>
+    <p>Answer the following questions to discover your investor profile.</p>
   </div>
 
   <div class="progress-wrap">
-    <div class="progress-label">Progress: <span id="progressText">0 / 9</span></div>
+    <div class="progress-label"><span id="progressLabel">Progress:</span> <span id="progressText">0 / 12</span></div>
     <div class="progress-bar"><div class="progress-fill" id="progressFill" style="width:0%"></div></div>
   </div>
 
@@ -560,6 +590,367 @@
     { min: 0,   max: 2.9,  name: 'The At-Risk Investor',    desc: 'High exposure to volatility and operational leakage.' }
   ];
 
+  // ── Internationalization ──
+  let currentLang = localStorage.getItem('surveyLang') || 'en';
+
+  const i18n = {
+    en: {
+      dir: 'ltr',
+      toggleLabel: '\u05E2\u05D1',
+      title: 'Investment Habits Questionnaire',
+      subtitle: 'Answer the following questions to discover your investor profile.',
+      progressLabel: 'Progress:',
+      submit: 'Submit & See My Score',
+      update: 'Update & See My Score',
+      validationMsg: 'Please select an answer.',
+      contactTitle: 'Your Information <span style="font-weight:400;text-transform:none;letter-spacing:0">(optional)</span>',
+      nameLabel: 'Name',
+      emailLabel: 'Email',
+      phoneLabel: 'Phone',
+      optional: '(optional)',
+      namePlaceholder: 'e.g. John Smith',
+      emailPlaceholder: 'e.g. john@example.com',
+      phonePlaceholder: 'e.g. +1 555-123-4567',
+      sectionTitles: [
+        'Section 1 \u2014 Profile & Management',
+        'Section 2 \u2014 Knowledge & Strategy',
+        'Section 3 \u2014 Risk & Diversification',
+        'Section 4 \u2014 The Reaction Gap',
+        'Section 5 \u2014 The Trust & Delegation Hierarchy',
+        'Section 6 \u2014 Information Density & Logic Transparency'
+      ],
+      questions: {
+        1: { label: '1. How do you currently manage your liquid assets?', options: [
+          'The Delegator: Assets are managed by a professional firm or advisor with minimal personal involvement.',
+          'The Hybrid: Managed via a wealth manager, but with an active personal "satellite" portfolio.',
+          'The Pure DIY: Total personal management of all accounts through brokerage platforms.',
+          'The Inert Investor: Capital is held in accounts but rarely reviewed or traded.'
+        ]},
+        2: { label: '2. Mental Overhead Scale (1\u201310)', note: 'How much time and anxiety does your portfolio consume?', options: [
+          'Score 1\u20133: Portfolio is managed systematically with low stress.',
+          'Score 4\u20137: Regular monitoring is required, occasionally causing distraction.',
+          'Score 8\u201310: Constant monitoring of news and apps is required to feel secure.',
+          'Investment is fully managed by an advisor \u2014 no stress.'
+        ]},
+        3: { label: '3. Which instruments have you actively managed?', options: [
+          'Private Equity, Structured Products, or Delta-hedged Options.',
+          'Tax-advantaged vehicles (e.g., Opportunity Zones) or Alternative Credit.',
+          'Standard ETFs and Blue-Chip Equities only.'
+        ]},
+        4: { label: '4. How would you describe your primary "Edge"?', options: [
+          'Structural or Information: Access to unique deal flow, niche data, or tax/legal optimization.',
+          'Analytical: Success based on fundamental valuation or macroeconomic cycle analysis.',
+          'No Edge / Momentum: Following market trends or relying on broad market growth.'
+        ]},
+        5: { label: '5. How do you define "Diversification"?', options: [
+          'By Correlation: Selection of assets based on how they move in relation to one another.',
+          'By Asset Class / Geography: Spreading capital across different sectors and regions.',
+          'By "Feeling" / Tickers: Owning a large number of individual stocks to reduce concentration.'
+        ]},
+        6: { label: '6. Mechanism for controlling "Downside Risk"?', options: [
+          'Portfolio Insurance: Systematic use of tail-risk hedges, puts, or volatility instruments.',
+          'Stop-Losses: Automatic exit orders at pre-defined price targets.',
+          'Manual Intervention: Selling positions based on news flow or market sentiment.',
+          'Not Controlled: No active downside-risk management in place.'
+        ]},
+        7: { label: '7. How do you handle "Hidden Correlations"?', options: [
+          'Use of software to track the Beta and Correlation Matrix of the entire portfolio.',
+          'Manual awareness of correlations without the use of dedicated calculation tools.',
+          'Reliance on broad diversification without specific correlation monitoring.',
+          'Not Handled: No correlation tracking or management in place.'
+        ]},
+        8: { label: '8. Reaction time to major macro events?', options: [
+          'Minutes: Immediate execution via algorithmic or direct market access.',
+          'Hours: Adjustments made during the same trading day or after work.',
+          'Days / Weeks: Adjustments made after significant research or a scheduled advisor meeting.',
+          'No Changes: I do not react to macro events \u2014 my portfolio stays as-is.'
+        ]},
+        9: { label: '9. Biggest "Execution Regret"?', options: [
+          'Complexity: Desired a sophisticated hedge but lacked the tools to execute the math.',
+          'Omission: Identified the correct move but lacked the time to act on it.',
+          'Commission: Executed a trade based on an emotional reaction to market noise.',
+          'Inaction: Didn\'t execute because I lacked the knowledge of what the right move was.'
+        ]},
+        10: { label: '10. What is your primary stance on trusting an AI-driven investment agent?', options: [
+          'Human-Only: I only trust the intuition and accountability of a human advisor.',
+          'Conditional Trust: I trust AI recommendations only if I am provided with a detailed logical explanation for every move.',
+          'Strategic Trust: I trust the AI\'s data-driven nature and prefer it over human emotional bias.',
+          'Full Autonomy: I trust a verified AI agent to manage and execute my investments automatically.'
+        ]},
+        11: { label: '11. How much "Discretionary Authority" are you willing to grant an automated system?', options: [
+          'Zero Discretion: The agent should only alert me to opportunities; I will execute all trades manually.',
+          'Veto Power: The agent can draft the trades, but I must click "Approve" before anything happens.',
+          'Guarded Autonomy: The agent can trade automatically within pre-set risk limits or "kill-switches."',
+          'Full Mandate: The agent has full authority to rebalance and hedge my portfolio 24/7 without my intervention.'
+        ]},
+        12: { label: '12. What level of information do you require from an AI agent to feel "in control"?', options: [
+          'The Deep Audit: I want full transparency: raw data sources, correlation matrices, and a list of alternative strategies the AI rejected.',
+          'The Executive Memo: A clear, 3-sentence summary of the logic, the specific goal of the move, and the risk/reward impact.',
+          'The Bottom Line: I don\'t need the math; just show me the final trade and the impact on my projected return.',
+          'The Visual Map: I prefer interactive charts showing my portfolio\'s "Before vs. After" risk profile.'
+        ]}
+      },
+      questionLabelsShort: questionLabels,
+      answerLabelsDisplay: {
+        1: { 1: '1.1 \u2013 The Delegator', 2: '1.2 \u2013 The Hybrid', 3: '1.3 \u2013 The Pure DIY', 4: '1.4 \u2013 The Inert Investor' },
+        2: { 1: '2.1 \u2013 Score 1\u20133 (Low stress)', 2: '2.2 \u2013 Score 4\u20137 (Moderate)', 3: '2.3 \u2013 Score 8\u201310 (High anxiety)', 4: '2.4 \u2013 Managed by advisor' },
+        3: { 1: '3.1 \u2013 PE / Structured / Delta-hedged', 2: '3.2 \u2013 Tax-advantaged / Alt Credit', 3: '3.3 \u2013 Standard ETFs & Blue-Chips' },
+        4: { 1: '4.1 \u2013 Structural or Information', 2: '4.2 \u2013 Analytical', 3: '4.3 \u2013 No Edge / Momentum' },
+        5: { 1: '5.1 \u2013 By Correlation', 2: '5.2 \u2013 By Asset Class / Geography', 3: '5.3 \u2013 By "Feeling" / Tickers' },
+        6: { 1: '6.1 \u2013 Portfolio Insurance', 2: '6.2 \u2013 Stop-Losses', 3: '6.3 \u2013 Manual Intervention', 4: '6.4 \u2013 Not Controlled' },
+        7: { 1: '7.1 \u2013 Software (Beta/Correlation Matrix)', 2: '7.2 \u2013 Manual awareness', 3: '7.3 \u2013 Broad diversification only', 4: '7.4 \u2013 Not Handled' },
+        8: { 1: '8.1 \u2013 Minutes', 2: '8.2 \u2013 Hours', 3: '8.3 \u2013 Days / Weeks', 4: '8.4 \u2013 No Changes' },
+        9: { 1: '9.1 \u2013 Complexity', 2: '9.2 \u2013 Omission', 3: '9.3 \u2013 Commission', 4: '9.4 \u2013 Inaction' },
+        10: { 1: '10.1 \u2013 Human-Only', 2: '10.2 \u2013 Conditional Trust', 3: '10.3 \u2013 Strategic Trust', 4: '10.4 \u2013 Full Autonomy' },
+        11: { 1: '11.1 \u2013 Zero Discretion', 2: '11.2 \u2013 Veto Power', 3: '11.3 \u2013 Guarded Autonomy', 4: '11.4 \u2013 Full Mandate' },
+        12: { 1: '12.1 \u2013 The Deep Audit', 2: '12.2 \u2013 The Executive Memo', 3: '12.3 \u2013 The Bottom Line', 4: '12.4 \u2013 The Visual Map' }
+      },
+      resultsTitle: 'Your Results',
+      scoreOf: '/ 10',
+      breakdownTitle: 'Answer Breakdown',
+      matrixTitle: 'The Sophistication Matrix',
+      matrixHeaders: ['Score', 'Persona', 'Description'],
+      editBtn: 'Edit My Answers',
+      ptUnit: 'pts',
+      personaDisplay: {
+        'The Institutionalist': { name: 'The Institutionalist', desc: 'Focuses on efficiency and system-building.' },
+        'The Advanced Architect': { name: 'The Advanced Architect', desc: 'High knowledge, hindered by execution latency.' },
+        'The Informed Generalist': { name: 'The Informed Generalist', desc: 'Follows best practices but lacks protective depth.' },
+        'The Reactive Investor': { name: 'The Reactive Investor', desc: 'Strategy is driven by market moves rather than logic.' },
+        'The At-Risk Investor': { name: 'The At-Risk Investor', desc: 'High exposure to volatility and operational leakage.' }
+      },
+      matrixRows: [
+        { score: '9 \u2013 10', persona: 'The Institutionalist', desc: 'Focuses on efficiency and system-building.' },
+        { score: '7 \u2013 8.9', persona: 'The Advanced Architect', desc: 'High knowledge, hindered by execution latency.' },
+        { score: '5 \u2013 6.9', persona: 'The Informed Generalist', desc: 'Follows best practices but lacks protective depth.' },
+        { score: '3 \u2013 4.9', persona: 'The Reactive Investor', desc: 'Strategy is driven by market moves rather than logic.' },
+        { score: '0 \u2013 2.9', persona: 'The At-Risk Investor', desc: 'High exposure to volatility and operational leakage.' }
+      ]
+    },
+    he: {
+      dir: 'rtl',
+      toggleLabel: 'EN',
+      title: '\u05E9\u05D0\u05DC\u05D5\u05DF \u05D4\u05E8\u05D2\u05DC\u05D9 \u05D4\u05E9\u05E7\u05E2\u05D4',
+      subtitle: '\u05E2\u05E0\u05D4 \u05E2\u05DC \u05D4\u05E9\u05D0\u05DC\u05D5\u05EA \u05D4\u05D1\u05D0\u05D5\u05EA \u05DB\u05D3\u05D9 \u05DC\u05D2\u05DC\u05D5\u05EA \u05D0\u05EA \u05E4\u05E8\u05D5\u05E4\u05D9\u05DC \u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05E9\u05DC\u05DA.',
+      progressLabel: '\u05D4\u05EA\u05E7\u05D3\u05DE\u05D5\u05EA:',
+      submit: '\u05E9\u05DC\u05D7 \u05D5\u05E6\u05E4\u05D4 \u05D1\u05E6\u05D9\u05D5\u05DF \u05E9\u05DC\u05D9',
+      update: '\u05E2\u05D3\u05DB\u05DF \u05D5\u05E6\u05E4\u05D4 \u05D1\u05E6\u05D9\u05D5\u05DF \u05E9\u05DC\u05D9',
+      validationMsg: '\u05D0\u05E0\u05D0 \u05D1\u05D7\u05E8 \u05EA\u05E9\u05D5\u05D1\u05D4.',
+      contactTitle: '\u05D4\u05E4\u05E8\u05D8\u05D9\u05DD \u05E9\u05DC\u05DA <span style="font-weight:400;text-transform:none;letter-spacing:0">(\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)</span>',
+      nameLabel: '\u05E9\u05DD',
+      emailLabel: '\u05D3\u05D5\u05D0"\u05DC',
+      phoneLabel: '\u05D8\u05DC\u05E4\u05D5\u05DF',
+      optional: '(\u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05E0\u05DC\u05D9)',
+      namePlaceholder: '\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: \u05D9\u05E9\u05E8\u05D0\u05DC \u05D9\u05E9\u05E8\u05D0\u05DC\u05D9',
+      emailPlaceholder: '\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: israel@example.com',
+      phonePlaceholder: '\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: 050-123-4567',
+      sectionTitles: [
+        '\u05D7\u05DC\u05E7 1 \u2014 \u05E4\u05E8\u05D5\u05E4\u05D9\u05DC \u05D5\u05E0\u05D9\u05D4\u05D5\u05DC',
+        '\u05D7\u05DC\u05E7 2 \u2014 \u05D9\u05D3\u05E2 \u05D5\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4',
+        '\u05D7\u05DC\u05E7 3 \u2014 \u05E1\u05D9\u05DB\u05D5\u05DF \u05D5\u05E4\u05D9\u05D6\u05D5\u05E8',
+        '\u05D7\u05DC\u05E7 4 \u2014 \u05E4\u05E2\u05E8 \u05D4\u05EA\u05D2\u05D5\u05D1\u05D4',
+        '\u05D7\u05DC\u05E7 5 \u2014 \u05D4\u05D9\u05E8\u05E8\u05DB\u05D9\u05D9\u05EA \u05D4\u05D0\u05DE\u05D5\u05DF \u05D5\u05D4\u05D0\u05E6\u05DC\u05EA \u05D4\u05E1\u05DE\u05DB\u05D5\u05D9\u05D5\u05EA',
+        '\u05D7\u05DC\u05E7 6 \u2014 \u05E6\u05E4\u05D9\u05E4\u05D5\u05EA \u05DE\u05D9\u05D3\u05E2 \u05D5\u05E9\u05E7\u05D9\u05E4\u05D5\u05EA \u05DC\u05D5\u05D2\u05D9\u05EA'
+      ],
+      questions: {
+        1: { label: '1. \u05DB\u05D9\u05E6\u05D3 \u05D0\u05EA\u05D4 \u05DE\u05E0\u05D4\u05DC \u05DB\u05D9\u05D5\u05DD \u05D0\u05EA \u05D4\u05E0\u05DB\u05E1\u05D9\u05DD \u05D4\u05E0\u05D6\u05D9\u05DC\u05D9\u05DD \u05E9\u05DC\u05DA?', options: [
+          '\u05D4\u05DE\u05D0\u05E6\u05D9\u05DC: \u05D4\u05E0\u05DB\u05E1\u05D9\u05DD \u05DE\u05E0\u05D5\u05D4\u05DC\u05D9\u05DD \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D7\u05D1\u05E8\u05D4 \u05DE\u05E7\u05E6\u05D5\u05E2\u05D9\u05EA \u05D0\u05D5 \u05D9\u05D5\u05E2\u05E5 \u05E2\u05DD \u05DE\u05E2\u05D5\u05E8\u05D1\u05D5\u05EA \u05D0\u05D9\u05E9\u05D9\u05EA \u05DE\u05D9\u05E0\u05D9\u05DE\u05DC\u05D9\u05EA.',
+          '\u05D4\u05D4\u05D9\u05D1\u05E8\u05D9\u05D3\u05D9: \u05DE\u05E0\u05D5\u05D4\u05DC \u05D1\u05D0\u05DE\u05E6\u05E2\u05D5\u05EA \u05DE\u05E0\u05D4\u05DC \u05E2\u05D5\u05E9\u05E8, \u05D0\u05DA \u05E2\u05DD \u05EA\u05D9\u05E7 "\u05DC\u05D5\u05D5\u05D9\u05D9\u05DF" \u05D0\u05D9\u05E9\u05D9 \u05E4\u05E2\u05D9\u05DC.',
+          '\u05D4\u05E2\u05E6\u05DE\u05D0\u05D9 \u05D4\u05DE\u05D5\u05D7\u05DC\u05D8: \u05E0\u05D9\u05D4\u05D5\u05DC \u05D0\u05D9\u05E9\u05D9 \u05DE\u05DC\u05D0 \u05E9\u05DC \u05DB\u05DC \u05D4\u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA \u05D3\u05E8\u05DA \u05E4\u05DC\u05D8\u05E4\u05D5\u05E8\u05DE\u05D5\u05EA \u05DE\u05E1\u05D7\u05E8.',
+          '\u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05D4\u05E4\u05E1\u05D9\u05D1\u05D9: \u05D4\u05D4\u05D5\u05DF \u05DE\u05D5\u05D7\u05D6\u05E7 \u05D1\u05D7\u05E9\u05D1\u05D5\u05E0\u05D5\u05EA \u05D0\u05DA \u05DB\u05DE\u05E2\u05D8 \u05D5\u05DC\u05D0 \u05E0\u05D1\u05D3\u05E7 \u05D0\u05D5 \u05E0\u05E1\u05D7\u05E8.'
+        ]},
+        2: { label: '2. \u05E1\u05D5\u05DC\u05DD \u05D4\u05E2\u05D5\u05DE\u05E1 \u05D4\u05DE\u05E0\u05D8\u05DC\u05D9 (1\u201310)', note: '\u05DB\u05DE\u05D4 \u05D6\u05DE\u05DF \u05D5\u05D7\u05E8\u05D3\u05D4 \u05D4\u05EA\u05D9\u05E7 \u05E9\u05DC\u05DA \u05E6\u05D5\u05E8\u05DA?', options: [
+          '\u05E6\u05D9\u05D5\u05DF 1\u20133: \u05D4\u05EA\u05D9\u05E7 \u05DE\u05E0\u05D5\u05D4\u05DC \u05D1\u05D0\u05D5\u05E4\u05DF \u05E9\u05D9\u05D8\u05EA\u05D9 \u05E2\u05DD \u05E8\u05DE\u05EA \u05DC\u05D7\u05E5 \u05E0\u05DE\u05D5\u05DB\u05D4.',
+          '\u05E6\u05D9\u05D5\u05DF 4\u20137: \u05E0\u05D3\u05E8\u05E9 \u05DE\u05E2\u05E7\u05D1 \u05E9\u05D5\u05D8\u05E3, \u05E9\u05DC\u05E2\u05D9\u05EA\u05D9\u05DD \u05D2\u05D5\u05E8\u05DD \u05DC\u05D4\u05E1\u05D7\u05EA \u05D3\u05E2\u05EA.',
+          '\u05E6\u05D9\u05D5\u05DF 8\u201310: \u05E0\u05D3\u05E8\u05E9 \u05DE\u05E2\u05E7\u05D1 \u05DE\u05EA\u05DE\u05D9\u05D3 \u05D0\u05D7\u05E8\u05D9 \u05D7\u05D3\u05E9\u05D5\u05EA \u05D5\u05D0\u05E4\u05DC\u05D9\u05E7\u05E6\u05D9\u05D5\u05EA \u05DB\u05D3\u05D9 \u05DC\u05D4\u05E8\u05D2\u05D9\u05E9 \u05D1\u05D8\u05D5\u05D7.',
+          '\u05D4\u05D4\u05E9\u05E7\u05E2\u05D4 \u05DE\u05E0\u05D5\u05D4\u05DC\u05EA \u05D1\u05DE\u05DC\u05D5\u05D0\u05D4 \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D9\u05D5\u05E2\u05E5 \u2014 \u05DC\u05DC\u05D0 \u05DC\u05D7\u05E5.'
+        ]},
+        3: { label: '3. \u05D1\u05D0\u05D9\u05DC\u05D5 \u05DE\u05DB\u05E9\u05D9\u05E8\u05D9\u05DD \u05E4\u05D9\u05E0\u05E0\u05E1\u05D9\u05D9\u05DD \u05E0\u05D9\u05D4\u05DC\u05EA \u05D1\u05D0\u05D5\u05E4\u05DF \u05E4\u05E2\u05D9\u05DC?', options: [
+          '\u05D4\u05D5\u05DF \u05E4\u05E8\u05D8\u05D9, \u05DE\u05D5\u05E6\u05E8\u05D9\u05DD \u05DE\u05D5\u05D1\u05E0\u05D9\u05DD, \u05D0\u05D5 \u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05EA \u05E2\u05DD \u05D2\u05D9\u05D3\u05D5\u05E8 \u05D3\u05DC\u05EA\u05D0.',
+          '\u05DE\u05DB\u05E9\u05D9\u05E8\u05D9\u05DD \u05E2\u05DD \u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05E1 (\u05DC\u05DE\u05E9\u05DC, \u05D0\u05D6\u05D5\u05E8\u05D9 \u05D4\u05D6\u05D3\u05DE\u05E0\u05D5\u05EA) \u05D0\u05D5 \u05D0\u05E9\u05E8\u05D0\u05D9 \u05D7\u05DC\u05D5\u05E4\u05D9.',
+          '\u05E7\u05E8\u05E0\u05D5\u05EA \u05E1\u05DC (ETF) \u05D5\u05DE\u05E0\u05D9\u05D5\u05EA \u05D1\u05DC\u05D5-\u05E6\u05F3\u05D9\u05E4 \u05D1\u05DC\u05D1\u05D3.'
+        ]},
+        4: { label: '4. \u05DB\u05D9\u05E6\u05D3 \u05D4\u05D9\u05D9\u05EA \u05DE\u05EA\u05D0\u05E8 \u05D0\u05EA \u05D4"\u05D9\u05EA\u05E8\u05D5\u05DF" \u05D4\u05E2\u05D9\u05E7\u05E8\u05D9 \u05E9\u05DC\u05DA?', options: [
+          '\u05DE\u05D1\u05E0\u05D9 \u05D0\u05D5 \u05DE\u05D9\u05D3\u05E2\u05D9: \u05D2\u05D9\u05E9\u05D4 \u05DC\u05D6\u05E8\u05D9\u05DE\u05EA \u05E2\u05E1\u05E7\u05D0\u05D5\u05EA \u05D9\u05D9\u05D7\u05D5\u05D3\u05D9\u05EA, \u05E0\u05EA\u05D5\u05E0\u05D9 \u05E0\u05D9\u05E9\u05D4, \u05D0\u05D5 \u05D0\u05D5\u05E4\u05D8\u05D9\u05DE\u05D9\u05D6\u05E6\u05D9\u05D4 \u05DE\u05D9\u05E1\u05D5\u05D9\u05D9\u05EA/\u05DE\u05E9\u05E4\u05D8\u05D9\u05EA.',
+          '\u05D0\u05E0\u05DC\u05D9\u05D8\u05D9: \u05D4\u05E6\u05DC\u05D7\u05D4 \u05D4\u05DE\u05D1\u05D5\u05E1\u05E1\u05EA \u05E2\u05DC \u05D4\u05E2\u05E8\u05DB\u05EA \u05E9\u05D5\u05D5\u05D9 \u05E4\u05D5\u05E0\u05D3\u05DE\u05E0\u05D8\u05DC\u05D9\u05EA \u05D0\u05D5 \u05E0\u05D9\u05EA\u05D5\u05D7 \u05DE\u05D7\u05D6\u05D5\u05E8\u05D9\u05DD \u05DE\u05D0\u05E7\u05E8\u05D5-\u05DB\u05DC\u05DB\u05DC\u05D9\u05D9\u05DD.',
+          '\u05DC\u05DC\u05D0 \u05D9\u05EA\u05E8\u05D5\u05DF / \u05DE\u05D5\u05DE\u05E0\u05D8\u05D5\u05DD: \u05E2\u05E7\u05D9\u05D1\u05D4 \u05D0\u05D7\u05E8 \u05DE\u05D2\u05DE\u05D5\u05EA \u05E9\u05D5\u05E7 \u05D0\u05D5 \u05D4\u05E1\u05EA\u05DE\u05DB\u05D5\u05EA \u05E2\u05DC \u05E6\u05DE\u05D9\u05D7\u05EA \u05E9\u05D5\u05E7 \u05E8\u05D7\u05D1\u05D4.'
+        ]},
+        5: { label: '5. \u05DB\u05D9\u05E6\u05D3 \u05D0\u05EA\u05D4 \u05DE\u05D2\u05D3\u05D9\u05E8 "\u05E4\u05D9\u05D6\u05D5\u05E8"?', options: [
+          '\u05DC\u05E4\u05D9 \u05DE\u05EA\u05D0\u05DD: \u05D1\u05D7\u05D9\u05E8\u05EA \u05E0\u05DB\u05E1\u05D9\u05DD \u05E2\u05DC \u05D1\u05E1\u05D9\u05E1 \u05D0\u05D5\u05E4\u05DF \u05D4\u05EA\u05E0\u05D5\u05E2\u05D4 \u05E9\u05DC\u05D4\u05DD \u05D1\u05D9\u05D7\u05E1 \u05D6\u05D4 \u05DC\u05D6\u05D4.',
+          '\u05DC\u05E4\u05D9 \u05E1\u05D5\u05D2 \u05E0\u05DB\u05E1 / \u05D2\u05D9\u05D0\u05D5\u05D2\u05E8\u05E4\u05D9\u05D4: \u05E4\u05D9\u05D6\u05D5\u05E8 \u05D4\u05D5\u05DF \u05D1\u05D9\u05DF \u05E1\u05E7\u05D8\u05D5\u05E8\u05D9\u05DD \u05D5\u05D0\u05D6\u05D5\u05E8\u05D9\u05DD \u05E9\u05D5\u05E0\u05D9\u05DD.',
+          '\u05DC\u05E4\u05D9 "\u05EA\u05D7\u05D5\u05E9\u05D4" / \u05DE\u05E0\u05D9\u05D5\u05EA: \u05D4\u05D7\u05D6\u05E7\u05EA \u05DE\u05E1\u05E4\u05E8 \u05E8\u05D1 \u05E9\u05DC \u05DE\u05E0\u05D9\u05D5\u05EA \u05D1\u05D5\u05D3\u05D3\u05D5\u05EA \u05DC\u05E6\u05DE\u05E6\u05D5\u05DD \u05E8\u05D9\u05DB\u05D5\u05D6\u05D9\u05D5\u05EA.'
+        ]},
+        6: { label: '6. \u05DE\u05E0\u05D2\u05E0\u05D5\u05DF \u05DC\u05E9\u05DC\u05D9\u05D8\u05D4 \u05D1"\u05E1\u05D9\u05DB\u05D5\u05DF \u05D4\u05D9\u05E8\u05D9\u05D3\u05D4"?', options: [
+          '\u05D1\u05D9\u05D8\u05D5\u05D7 \u05EA\u05D9\u05E7: \u05E9\u05D9\u05DE\u05D5\u05E9 \u05E9\u05D9\u05D8\u05EA\u05D9 \u05D1\u05D2\u05D9\u05D3\u05D5\u05E8 \u05E1\u05D9\u05DB\u05D5\u05E0\u05D9 \u05E7\u05E6\u05D4, \u05D0\u05D5\u05E4\u05E6\u05D9\u05D5\u05EA \u05E4\u05D5\u05D8, \u05D0\u05D5 \u05DE\u05DB\u05E9\u05D9\u05E8\u05D9 \u05EA\u05E0\u05D5\u05D3\u05EA\u05D9\u05D5\u05EA.',
+          '\u05E1\u05D8\u05D5\u05E4-\u05DC\u05D5\u05E1: \u05E4\u05E7\u05D5\u05D3\u05D5\u05EA \u05D9\u05E6\u05D9\u05D0\u05D4 \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05D5\u05EA \u05D1\u05E8\u05DE\u05D5\u05EA \u05DE\u05D7\u05D9\u05E8 \u05DE\u05D5\u05D2\u05D3\u05E8\u05D5\u05EA \u05DE\u05E8\u05D0\u05E9.',
+          '\u05D4\u05EA\u05E2\u05E8\u05D1\u05D5\u05EA \u05D9\u05D3\u05E0\u05D9\u05EA: \u05DE\u05DB\u05D9\u05E8\u05EA \u05E4\u05D5\u05D6\u05D9\u05E6\u05D9\u05D5\u05EA \u05E2\u05DC \u05D1\u05E1\u05D9\u05E1 \u05D6\u05E8\u05D9\u05DE\u05EA \u05D7\u05D3\u05E9\u05D5\u05EA \u05D0\u05D5 \u05E1\u05E0\u05D8\u05D9\u05DE\u05E0\u05D8 \u05E9\u05D5\u05E7.',
+          '\u05DC\u05DC\u05D0 \u05E9\u05DC\u05D9\u05D8\u05D4: \u05D0\u05D9\u05DF \u05E0\u05D9\u05D4\u05D5\u05DC \u05E1\u05D9\u05DB\u05D5\u05DF \u05D9\u05E8\u05D9\u05D3\u05D4 \u05E4\u05E2\u05D9\u05DC.'
+        ]},
+        7: { label: '7. \u05DB\u05D9\u05E6\u05D3 \u05D0\u05EA\u05D4 \u05DE\u05D8\u05E4\u05DC \u05D1"\u05DE\u05EA\u05D0\u05DE\u05D9\u05DD \u05E0\u05E1\u05EA\u05E8\u05D9\u05DD"?', options: [
+          '\u05E9\u05D9\u05DE\u05D5\u05E9 \u05D1\u05EA\u05D5\u05DB\u05E0\u05D4 \u05DC\u05DE\u05E2\u05E7\u05D1 \u05D0\u05D7\u05E8 \u05D4\u05D1\u05D8\u05D0 \u05D5\u05DE\u05D8\u05E8\u05D9\u05E6\u05EA \u05D4\u05DE\u05EA\u05D0\u05DE\u05D9\u05DD \u05E9\u05DC \u05DB\u05DC \u05D4\u05EA\u05D9\u05E7.',
+          '\u05DE\u05D5\u05D3\u05E2\u05D5\u05EA \u05D9\u05D3\u05E0\u05D9\u05EA \u05DC\u05DE\u05EA\u05D0\u05DE\u05D9\u05DD \u05DC\u05DC\u05D0 \u05E9\u05D9\u05DE\u05D5\u05E9 \u05D1\u05DB\u05DC\u05D9 \u05D7\u05D9\u05E9\u05D5\u05D1 \u05D9\u05D9\u05E2\u05D5\u05D3\u05D9\u05D9\u05DD.',
+          '\u05D4\u05E1\u05EA\u05DE\u05DB\u05D5\u05EA \u05E2\u05DC \u05E4\u05D9\u05D6\u05D5\u05E8 \u05E8\u05D7\u05D1 \u05DC\u05DC\u05D0 \u05DE\u05E2\u05E7\u05D1 \u05E1\u05E4\u05E6\u05D9\u05E4\u05D9 \u05D0\u05D7\u05E8 \u05DE\u05EA\u05D0\u05DE\u05D9\u05DD.',
+          '\u05DC\u05D0 \u05DE\u05D8\u05D5\u05E4\u05DC: \u05D0\u05D9\u05DF \u05DE\u05E2\u05E7\u05D1 \u05D0\u05D5 \u05E0\u05D9\u05D4\u05D5\u05DC \u05DE\u05EA\u05D0\u05DE\u05D9\u05DD.'
+        ]},
+        8: { label: '8. \u05D6\u05DE\u05DF \u05EA\u05D2\u05D5\u05D1\u05D4 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2\u05D9\u05DD \u05DE\u05D0\u05E7\u05E8\u05D5-\u05DB\u05DC\u05DB\u05DC\u05D9\u05D9\u05DD \u05DE\u05E9\u05DE\u05E2\u05D5\u05EA\u05D9\u05D9\u05DD?', options: [
+          '\u05D3\u05E7\u05D5\u05EA: \u05D1\u05D9\u05E6\u05D5\u05E2 \u05DE\u05D9\u05D9\u05D3\u05D9 \u05D1\u05D0\u05DE\u05E6\u05E2\u05D5\u05EA \u05D2\u05D9\u05E9\u05D4 \u05D0\u05DC\u05D2\u05D5\u05E8\u05D9\u05EA\u05DE\u05D9\u05EA \u05D0\u05D5 \u05D9\u05E9\u05D9\u05E8\u05D4 \u05DC\u05E9\u05D5\u05E7.',
+          '\u05E9\u05E2\u05D5\u05EA: \u05D4\u05EA\u05D0\u05DE\u05D5\u05EA \u05E9\u05E0\u05E2\u05E9\u05D5\u05EA \u05D1\u05D0\u05D5\u05EA\u05D5 \u05D9\u05D5\u05DD \u05DE\u05E1\u05D7\u05E8 \u05D0\u05D5 \u05D0\u05D7\u05E8\u05D9 \u05D4\u05E2\u05D1\u05D5\u05D3\u05D4.',
+          '\u05D9\u05DE\u05D9\u05DD / \u05E9\u05D1\u05D5\u05E2\u05D5\u05EA: \u05D4\u05EA\u05D0\u05DE\u05D5\u05EA \u05E9\u05E0\u05E2\u05E9\u05D5\u05EA \u05DC\u05D0\u05D7\u05E8 \u05DE\u05D7\u05E7\u05E8 \u05DE\u05E9\u05DE\u05E2\u05D5\u05EA\u05D9 \u05D0\u05D5 \u05E4\u05D2\u05D9\u05E9\u05D4 \u05DE\u05EA\u05D5\u05DB\u05E0\u05E0\u05EA \u05E2\u05DD \u05D9\u05D5\u05E2\u05E5.',
+          '\u05DC\u05DC\u05D0 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD: \u05D0\u05D9\u05E0\u05E0\u05D9 \u05DE\u05D2\u05D9\u05D1 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2\u05D9 \u05DE\u05D0\u05E7\u05E8\u05D5 \u2014 \u05D4\u05EA\u05D9\u05E7 \u05E9\u05DC\u05D9 \u05E0\u05E9\u05D0\u05E8 \u05DB\u05E4\u05D9 \u05E9\u05D4\u05D5\u05D0.'
+        ]},
+        9: { label: '9. "\u05D7\u05E8\u05D8\u05EA \u05D4\u05D1\u05D9\u05E6\u05D5\u05E2" \u05D4\u05D2\u05D3\u05D5\u05DC\u05D4 \u05D1\u05D9\u05D5\u05EA\u05E8?', options: [
+          '\u05DE\u05D5\u05E8\u05DB\u05D1\u05D5\u05EA: \u05E8\u05E6\u05D9\u05EA\u05D9 \u05D2\u05D9\u05D3\u05D5\u05E8 \u05DE\u05EA\u05D5\u05D7\u05DB\u05DD \u05D0\u05DA \u05D7\u05E1\u05E8\u05D5 \u05DC\u05D9 \u05D4\u05DB\u05DC\u05D9\u05DD \u05DC\u05D1\u05E6\u05E2 \u05D0\u05EA \u05D4\u05D7\u05D9\u05E9\u05D5\u05D1\u05D9\u05DD.',
+          '\u05D4\u05E9\u05DE\u05D8\u05D4: \u05D6\u05D9\u05D4\u05D9\u05EA\u05D9 \u05D0\u05EA \u05D4\u05DE\u05D4\u05DC\u05DA \u05D4\u05E0\u05DB\u05D5\u05DF \u05D0\u05DA \u05D7\u05E1\u05E8 \u05DC\u05D9 \u05D4\u05D6\u05DE\u05DF \u05DC\u05E4\u05E2\u05D5\u05DC.',
+          '\u05D1\u05D9\u05E6\u05D5\u05E2 \u05E9\u05D2\u05D5\u05D9: \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05E2\u05E1\u05E7\u05D4 \u05E2\u05DC \u05D1\u05E1\u05D9\u05E1 \u05EA\u05D2\u05D5\u05D1\u05D4 \u05E8\u05D2\u05E9\u05D9\u05EA \u05DC\u05E8\u05E2\u05E9 \u05E9\u05D5\u05E7.',
+          '\u05D7\u05D5\u05E1\u05E8 \u05E4\u05E2\u05D5\u05DC\u05D4: \u05DC\u05D0 \u05D1\u05D9\u05E6\u05E2\u05EA\u05D9 \u05DB\u05D9 \u05D7\u05E1\u05E8 \u05DC\u05D9 \u05D4\u05D9\u05D3\u05E2 \u05DE\u05D4\u05D5 \u05D4\u05DE\u05D4\u05DC\u05DA \u05D4\u05E0\u05DB\u05D5\u05DF.'
+        ]},
+        10: { label: '10. \u05DE\u05D4\u05D9 \u05D4\u05E2\u05DE\u05D3\u05D4 \u05D4\u05E2\u05D9\u05E7\u05E8\u05D9\u05EA \u05E9\u05DC\u05DA \u05DC\u05D2\u05D1\u05D9 \u05D0\u05DE\u05D5\u05DF \u05D1\u05E1\u05D5\u05DB\u05DF \u05D4\u05E9\u05E7\u05E2\u05D5\u05EA \u05DE\u05D1\u05D5\u05E1\u05E1 \u05D1\u05D9\u05E0\u05D4 \u05DE\u05DC\u05D0\u05DB\u05D5\u05EA\u05D9\u05EA?', options: [
+          '\u05D0\u05E0\u05D5\u05E9\u05D9 \u05D1\u05DC\u05D1\u05D3: \u05D0\u05E0\u05D9 \u05E1\u05D5\u05DE\u05DA \u05E8\u05E7 \u05E2\u05DC \u05D4\u05D0\u05D9\u05E0\u05D8\u05D5\u05D0\u05D9\u05E6\u05D9\u05D4 \u05D5\u05D4\u05D0\u05D7\u05E8\u05D9\u05D5\u05EA \u05E9\u05DC \u05D9\u05D5\u05E2\u05E5 \u05D0\u05E0\u05D5\u05E9\u05D9.',
+          '\u05D0\u05DE\u05D5\u05DF \u05DE\u05D5\u05EA\u05E0\u05D4: \u05D0\u05E0\u05D9 \u05E1\u05D5\u05DE\u05DA \u05E2\u05DC \u05D4\u05DE\u05DC\u05E6\u05D5\u05EA AI \u05E8\u05E7 \u05D0\u05DD \u05D0\u05E7\u05D1\u05DC \u05D4\u05E1\u05D1\u05E8 \u05DC\u05D5\u05D2\u05D9 \u05DE\u05E4\u05D5\u05E8\u05D8 \u05DC\u05DB\u05DC \u05DE\u05D4\u05DC\u05DA.',
+          '\u05D0\u05DE\u05D5\u05DF \u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9: \u05D0\u05E0\u05D9 \u05E1\u05D5\u05DE\u05DA \u05E2\u05DC \u05D4\u05D0\u05D5\u05E4\u05D9 \u05DE\u05D5\u05E0\u05D7\u05D4-\u05D4\u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05E9\u05DC \u05D4-AI \u05D5\u05DE\u05E2\u05D3\u05D9\u05E3 \u05D0\u05D5\u05EA\u05D5 \u05E2\u05DC \u05D4\u05D8\u05D9\u05D4 \u05E8\u05D2\u05E9\u05D9\u05EA \u05D0\u05E0\u05D5\u05E9\u05D9\u05EA.',
+          '\u05D0\u05D5\u05D8\u05D5\u05E0\u05D5\u05DE\u05D9\u05D4 \u05DE\u05DC\u05D0\u05D4: \u05D0\u05E0\u05D9 \u05E1\u05D5\u05DE\u05DA \u05E2\u05DC \u05E1\u05D5\u05DB\u05DF AI \u05DE\u05D0\u05D5\u05DE\u05EA \u05DC\u05E0\u05D9\u05D4\u05D5\u05DC \u05D5\u05D1\u05D9\u05E6\u05D5\u05E2 \u05D4\u05D4\u05E9\u05E7\u05E2\u05D5\u05EA \u05E9\u05DC\u05D9 \u05D1\u05D0\u05D5\u05E4\u05DF \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9.'
+        ]},
+        11: { label: '11. \u05DB\u05DE\u05D4 "\u05E1\u05DE\u05DB\u05D5\u05EA \u05E9\u05D9\u05E7\u05D5\u05DC \u05D3\u05E2\u05EA" \u05D0\u05EA\u05D4 \u05DE\u05D5\u05DB\u05DF \u05DC\u05D4\u05E2\u05E0\u05D9\u05E7 \u05DC\u05DE\u05E2\u05E8\u05DB\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA?', options: [
+          '\u05D0\u05E4\u05E1 \u05E9\u05D9\u05E7\u05D5\u05DC \u05D3\u05E2\u05EA: \u05D4\u05E1\u05D5\u05DB\u05DF \u05E6\u05E8\u05D9\u05DA \u05E8\u05E7 \u05DC\u05D4\u05EA\u05E8\u05D9\u05E2 \u05E2\u05DC \u05D4\u05D6\u05D3\u05DE\u05E0\u05D5\u05D9\u05D5\u05EA; \u05D0\u05D1\u05E6\u05E2 \u05D0\u05EA \u05DB\u05DC \u05D4\u05E2\u05E1\u05E7\u05D0\u05D5\u05EA \u05D9\u05D3\u05E0\u05D9\u05EA.',
+          '\u05D6\u05DB\u05D5\u05EA \u05D5\u05D8\u05D5: \u05D4\u05E1\u05D5\u05DB\u05DF \u05D9\u05DB\u05D5\u05DC \u05DC\u05EA\u05DB\u05E0\u05DF \u05D0\u05EA \u05D4\u05E2\u05E1\u05E7\u05D0\u05D5\u05EA, \u05D0\u05DA \u05E2\u05DC\u05D9\u05D9 \u05DC\u05DC\u05D7\u05D5\u05E5 "\u05D0\u05D9\u05E9\u05D5\u05E8" \u05DC\u05E4\u05E0\u05D9 \u05DB\u05DC \u05D1\u05D9\u05E6\u05D5\u05E2.',
+          '\u05D0\u05D5\u05D8\u05D5\u05E0\u05D5\u05DE\u05D9\u05D4 \u05DE\u05D5\u05D2\u05D1\u05DC\u05EA: \u05D4\u05E1\u05D5\u05DB\u05DF \u05D9\u05DB\u05D5\u05DC \u05DC\u05E1\u05D7\u05D5\u05E8 \u05D1\u05D0\u05D5\u05E4\u05DF \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9 \u05D1\u05DE\u05E1\u05D2\u05E8\u05EA \u05DE\u05D2\u05D1\u05DC\u05D5\u05EA \u05E1\u05D9\u05DB\u05D5\u05DF \u05DE\u05D5\u05D2\u05D3\u05E8\u05D5\u05EA \u05DE\u05E8\u05D0\u05E9.',
+          '\u05DE\u05E0\u05D3\u05D8 \u05DE\u05DC\u05D0: \u05DC\u05E1\u05D5\u05DB\u05DF \u05E1\u05DE\u05DB\u05D5\u05EA \u05DE\u05DC\u05D0\u05D4 \u05DC\u05D0\u05D6\u05DF \u05DE\u05D7\u05D3\u05E9 \u05D5\u05DC\u05D2\u05D3\u05E8 \u05D0\u05EA \u05D4\u05EA\u05D9\u05E7 \u05E9\u05DC\u05D9 24/7 \u05DC\u05DC\u05D0 \u05D4\u05EA\u05E2\u05E8\u05D1\u05D5\u05EA\u05D9.'
+        ]},
+        12: { label: '12. \u05D0\u05D9\u05D6\u05D5 \u05E8\u05DE\u05EA \u05DE\u05D9\u05D3\u05E2 \u05D0\u05EA\u05D4 \u05D3\u05D5\u05E8\u05E9 \u05DE\u05E1\u05D5\u05DB\u05DF AI \u05DB\u05D3\u05D9 \u05DC\u05D4\u05E8\u05D2\u05D9\u05E9 "\u05D1\u05E9\u05DC\u05D9\u05D8\u05D4"?', options: [
+          '\u05D4\u05D1\u05D9\u05E7\u05D5\u05E8\u05EA \u05D4\u05DE\u05E2\u05DE\u05D9\u05E7\u05D4: \u05D0\u05E0\u05D9 \u05E8\u05D5\u05E6\u05D4 \u05E9\u05E7\u05D9\u05E4\u05D5\u05EA \u05DE\u05DC\u05D0\u05D4: \u05DE\u05E7\u05D5\u05E8\u05D5\u05EA \u05E0\u05EA\u05D5\u05E0\u05D9\u05DD \u05D2\u05D5\u05DC\u05DE\u05D9\u05D9\u05DD, \u05DE\u05D8\u05E8\u05D9\u05E6\u05D5\u05EA \u05DE\u05EA\u05D0\u05DD, \u05D5\u05E8\u05E9\u05D9\u05DE\u05EA \u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D5\u05EA \u05D7\u05DC\u05D5\u05E4\u05D9\u05D5\u05EA \u05E9\u05D4-AI \u05D3\u05D7\u05D4.',
+          '\u05D4\u05EA\u05D6\u05DB\u05D9\u05E8 \u05D4\u05DE\u05E0\u05D4\u05DC\u05D9: \u05E1\u05D9\u05DB\u05D5\u05DD \u05D1\u05E8\u05D5\u05E8 \u05D1\u05DF 3 \u05DE\u05E9\u05E4\u05D8\u05D9\u05DD \u05E9\u05DC \u05D4\u05DC\u05D5\u05D2\u05D9\u05E7\u05D4, \u05D4\u05DE\u05D8\u05E8\u05D4 \u05D4\u05E1\u05E4\u05E6\u05D9\u05E4\u05D9\u05EA \u05E9\u05DC \u05D4\u05DE\u05D4\u05DC\u05DA, \u05D5\u05D4\u05E9\u05E4\u05E2\u05EA \u05D4\u05E1\u05D9\u05DB\u05D5\u05DF/\u05EA\u05E9\u05D5\u05D0\u05D4.',
+          '\u05D4\u05E9\u05D5\u05E8\u05D4 \u05D4\u05EA\u05D7\u05EA\u05D5\u05E0\u05D4: \u05D0\u05E0\u05D9 \u05DC\u05D0 \u05E6\u05E8\u05D9\u05DA \u05D0\u05EA \u05D4\u05DE\u05EA\u05DE\u05D8\u05D9\u05E7\u05D4; \u05D4\u05E8\u05D0\u05D5 \u05DC\u05D9 \u05D0\u05EA \u05D4\u05E2\u05E1\u05E7\u05D4 \u05D4\u05E1\u05D5\u05E4\u05D9\u05EA \u05D5\u05D4\u05D4\u05E9\u05E4\u05E2\u05D4 \u05E2\u05DC \u05D4\u05EA\u05E9\u05D5\u05D0\u05D4 \u05D4\u05E6\u05E4\u05D5\u05D9\u05D4.',
+          '\u05D4\u05DE\u05E4\u05D4 \u05D4\u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9\u05EA: \u05D0\u05E0\u05D9 \u05DE\u05E2\u05D3\u05D9\u05E3 \u05EA\u05E8\u05E9\u05D9\u05DE\u05D9\u05DD \u05D0\u05D9\u05E0\u05D8\u05E8\u05D0\u05E7\u05D8\u05D9\u05D1\u05D9\u05D9\u05DD \u05D4\u05DE\u05E6\u05D9\u05D2\u05D9\u05DD \u05D0\u05EA \u05E4\u05E8\u05D5\u05E4\u05D9\u05DC \u05D4\u05E1\u05D9\u05DB\u05D5\u05DF "\u05DC\u05E4\u05E0\u05D9 \u05DE\u05D5\u05DC \u05D0\u05D7\u05E8\u05D9" \u05E9\u05DC \u05D4\u05EA\u05D9\u05E7 \u05E9\u05DC\u05D9.'
+        ]}
+      },
+      questionLabelsShort: {
+        1: '\u05DB\u05D9\u05E6\u05D3 \u05D0\u05EA\u05D4 \u05DE\u05E0\u05D4\u05DC \u05D0\u05EA \u05D4\u05E0\u05DB\u05E1\u05D9\u05DD \u05D4\u05E0\u05D6\u05D9\u05DC\u05D9\u05DD?',
+        2: '\u05E1\u05D5\u05DC\u05DD \u05D4\u05E2\u05D5\u05DE\u05E1 \u05D4\u05DE\u05E0\u05D8\u05DC\u05D9',
+        3: '\u05D1\u05D0\u05D9\u05DC\u05D5 \u05DE\u05DB\u05E9\u05D9\u05E8\u05D9\u05DD \u05E4\u05D9\u05E0\u05E0\u05E1\u05D9\u05D9\u05DD \u05E0\u05D9\u05D4\u05DC\u05EA?',
+        4: '\u05DB\u05D9\u05E6\u05D3 \u05D4\u05D9\u05D9\u05EA \u05DE\u05EA\u05D0\u05E8 \u05D0\u05EA \u05D4"\u05D9\u05EA\u05E8\u05D5\u05DF" \u05E9\u05DC\u05DA?',
+        5: '\u05DB\u05D9\u05E6\u05D3 \u05D0\u05EA\u05D4 \u05DE\u05D2\u05D3\u05D9\u05E8 "\u05E4\u05D9\u05D6\u05D5\u05E8"?',
+        6: '\u05DE\u05E0\u05D2\u05E0\u05D5\u05DF \u05DC\u05E9\u05DC\u05D9\u05D8\u05D4 \u05D1"\u05E1\u05D9\u05DB\u05D5\u05DF \u05D4\u05D9\u05E8\u05D9\u05D3\u05D4"?',
+        7: '\u05DB\u05D9\u05E6\u05D3 \u05D0\u05EA\u05D4 \u05DE\u05D8\u05E4\u05DC \u05D1"\u05DE\u05EA\u05D0\u05DE\u05D9\u05DD \u05E0\u05E1\u05EA\u05E8\u05D9\u05DD"?',
+        8: '\u05D6\u05DE\u05DF \u05EA\u05D2\u05D5\u05D1\u05D4 \u05DC\u05D0\u05D9\u05E8\u05D5\u05E2\u05D9\u05DD \u05DE\u05D0\u05E7\u05E8\u05D5?',
+        9: '"\u05D7\u05E8\u05D8\u05EA \u05D4\u05D1\u05D9\u05E6\u05D5\u05E2" \u05D4\u05D2\u05D3\u05D5\u05DC\u05D4 \u05D1\u05D9\u05D5\u05EA\u05E8?',
+        10: '\u05D4\u05E2\u05DE\u05D3\u05D4 \u05E9\u05DC\u05DA \u05DC\u05D2\u05D1\u05D9 \u05D0\u05DE\u05D5\u05DF \u05D1\u05E1\u05D5\u05DB\u05DF \u05D4\u05E9\u05E7\u05E2\u05D5\u05EA AI?',
+        11: '\u05DB\u05DE\u05D4 "\u05E1\u05DE\u05DB\u05D5\u05EA \u05E9\u05D9\u05E7\u05D5\u05DC \u05D3\u05E2\u05EA" \u05DC\u05DE\u05E2\u05E8\u05DB\u05EA \u05D0\u05D5\u05D8\u05D5\u05DE\u05D8\u05D9\u05EA?',
+        12: '\u05D0\u05D9\u05D6\u05D5 \u05E8\u05DE\u05EA \u05DE\u05D9\u05D3\u05E2 \u05D0\u05EA\u05D4 \u05D3\u05D5\u05E8\u05E9 \u05DB\u05D3\u05D9 \u05DC\u05D4\u05E8\u05D2\u05D9\u05E9 "\u05D1\u05E9\u05DC\u05D9\u05D8\u05D4"?'
+      },
+      answerLabelsDisplay: {
+        1: { 1: '1.1 \u2013 \u05D4\u05DE\u05D0\u05E6\u05D9\u05DC', 2: '1.2 \u2013 \u05D4\u05D4\u05D9\u05D1\u05E8\u05D9\u05D3\u05D9', 3: '1.3 \u2013 \u05D4\u05E2\u05E6\u05DE\u05D0\u05D9 \u05D4\u05DE\u05D5\u05D7\u05DC\u05D8', 4: '1.4 \u2013 \u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05D4\u05E4\u05E1\u05D9\u05D1\u05D9' },
+        2: { 1: '2.1 \u2013 \u05E6\u05D9\u05D5\u05DF 1\u20133 (\u05DC\u05D7\u05E5 \u05E0\u05DE\u05D5\u05DA)', 2: '2.2 \u2013 \u05E6\u05D9\u05D5\u05DF 4\u20137 (\u05D1\u05D9\u05E0\u05D5\u05E0\u05D9)', 3: '2.3 \u2013 \u05E6\u05D9\u05D5\u05DF 8\u201310 (\u05D7\u05E8\u05D3\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D4)', 4: '2.4 \u2013 \u05DE\u05E0\u05D5\u05D4\u05DC \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D9\u05D5\u05E2\u05E5' },
+        3: { 1: '3.1 \u2013 \u05D4\u05D5\u05DF \u05E4\u05E8\u05D8\u05D9 / \u05DE\u05D5\u05D1\u05E0\u05D9\u05DD / \u05D3\u05DC\u05EA\u05D0', 2: '3.2 \u2013 \u05D4\u05D8\u05D1\u05D5\u05EA \u05DE\u05E1 / \u05D0\u05E9\u05E8\u05D0\u05D9 \u05D7\u05DC\u05D5\u05E4\u05D9', 3: '3.3 \u2013 ETF \u05D5\u05D1\u05DC\u05D5-\u05E6\u05F3\u05D9\u05E4' },
+        4: { 1: '4.1 \u2013 \u05DE\u05D1\u05E0\u05D9 \u05D0\u05D5 \u05DE\u05D9\u05D3\u05E2\u05D9', 2: '4.2 \u2013 \u05D0\u05E0\u05DC\u05D9\u05D8\u05D9', 3: '4.3 \u2013 \u05DC\u05DC\u05D0 \u05D9\u05EA\u05E8\u05D5\u05DF / \u05DE\u05D5\u05DE\u05E0\u05D8\u05D5\u05DD' },
+        5: { 1: '5.1 \u2013 \u05DC\u05E4\u05D9 \u05DE\u05EA\u05D0\u05DD', 2: '5.2 \u2013 \u05DC\u05E4\u05D9 \u05E1\u05D5\u05D2 \u05E0\u05DB\u05E1 / \u05D2\u05D9\u05D0\u05D5\u05D2\u05E8\u05E4\u05D9\u05D4', 3: '5.3 \u2013 \u05DC\u05E4\u05D9 "\u05EA\u05D7\u05D5\u05E9\u05D4" / \u05DE\u05E0\u05D9\u05D5\u05EA' },
+        6: { 1: '6.1 \u2013 \u05D1\u05D9\u05D8\u05D5\u05D7 \u05EA\u05D9\u05E7', 2: '6.2 \u2013 \u05E1\u05D8\u05D5\u05E4-\u05DC\u05D5\u05E1', 3: '6.3 \u2013 \u05D4\u05EA\u05E2\u05E8\u05D1\u05D5\u05EA \u05D9\u05D3\u05E0\u05D9\u05EA', 4: '6.4 \u2013 \u05DC\u05DC\u05D0 \u05E9\u05DC\u05D9\u05D8\u05D4' },
+        7: { 1: '7.1 \u2013 \u05EA\u05D5\u05DB\u05E0\u05D4 (\u05D1\u05D8\u05D0/\u05DE\u05D8\u05E8\u05D9\u05E6\u05EA \u05DE\u05EA\u05D0\u05DD)', 2: '7.2 \u2013 \u05DE\u05D5\u05D3\u05E2\u05D5\u05EA \u05D9\u05D3\u05E0\u05D9\u05EA', 3: '7.3 \u2013 \u05E4\u05D9\u05D6\u05D5\u05E8 \u05E8\u05D7\u05D1 \u05D1\u05DC\u05D1\u05D3', 4: '7.4 \u2013 \u05DC\u05D0 \u05DE\u05D8\u05D5\u05E4\u05DC' },
+        8: { 1: '8.1 \u2013 \u05D3\u05E7\u05D5\u05EA', 2: '8.2 \u2013 \u05E9\u05E2\u05D5\u05EA', 3: '8.3 \u2013 \u05D9\u05DE\u05D9\u05DD / \u05E9\u05D1\u05D5\u05E2\u05D5\u05EA', 4: '8.4 \u2013 \u05DC\u05DC\u05D0 \u05E9\u05D9\u05E0\u05D5\u05D9\u05D9\u05DD' },
+        9: { 1: '9.1 \u2013 \u05DE\u05D5\u05E8\u05DB\u05D1\u05D5\u05EA', 2: '9.2 \u2013 \u05D4\u05E9\u05DE\u05D8\u05D4', 3: '9.3 \u2013 \u05D1\u05D9\u05E6\u05D5\u05E2 \u05E9\u05D2\u05D5\u05D9', 4: '9.4 \u2013 \u05D7\u05D5\u05E1\u05E8 \u05E4\u05E2\u05D5\u05DC\u05D4' },
+        10: { 1: '10.1 \u2013 \u05D0\u05E0\u05D5\u05E9\u05D9 \u05D1\u05DC\u05D1\u05D3', 2: '10.2 \u2013 \u05D0\u05DE\u05D5\u05DF \u05DE\u05D5\u05EA\u05E0\u05D4', 3: '10.3 \u2013 \u05D0\u05DE\u05D5\u05DF \u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9', 4: '10.4 \u2013 \u05D0\u05D5\u05D8\u05D5\u05E0\u05D5\u05DE\u05D9\u05D4 \u05DE\u05DC\u05D0\u05D4' },
+        11: { 1: '11.1 \u2013 \u05D0\u05E4\u05E1 \u05E9\u05D9\u05E7\u05D5\u05DC \u05D3\u05E2\u05EA', 2: '11.2 \u2013 \u05D6\u05DB\u05D5\u05EA \u05D5\u05D8\u05D5', 3: '11.3 \u2013 \u05D0\u05D5\u05D8\u05D5\u05E0\u05D5\u05DE\u05D9\u05D4 \u05DE\u05D5\u05D2\u05D1\u05DC\u05EA', 4: '11.4 \u2013 \u05DE\u05E0\u05D3\u05D8 \u05DE\u05DC\u05D0' },
+        12: { 1: '12.1 \u2013 \u05D4\u05D1\u05D9\u05E7\u05D5\u05E8\u05EA \u05D4\u05DE\u05E2\u05DE\u05D9\u05E7\u05D4', 2: '12.2 \u2013 \u05D4\u05EA\u05D6\u05DB\u05D9\u05E8 \u05D4\u05DE\u05E0\u05D4\u05DC\u05D9', 3: '12.3 \u2013 \u05D4\u05E9\u05D5\u05E8\u05D4 \u05D4\u05EA\u05D7\u05EA\u05D5\u05E0\u05D4', 4: '12.4 \u2013 \u05D4\u05DE\u05E4\u05D4 \u05D4\u05D5\u05D9\u05D6\u05D5\u05D0\u05DC\u05D9\u05EA' }
+      },
+      resultsTitle: '\u05D4\u05EA\u05D5\u05E6\u05D0\u05D5\u05EA \u05E9\u05DC\u05DA',
+      scoreOf: '/ 10',
+      breakdownTitle: '\u05E4\u05D9\u05E8\u05D5\u05D8 \u05EA\u05E9\u05D5\u05D1\u05D5\u05EA',
+      matrixTitle: '\u05DE\u05D8\u05E8\u05D9\u05E6\u05EA \u05D4\u05EA\u05D7\u05DB\u05D5\u05DD',
+      matrixHeaders: ['\u05E6\u05D9\u05D5\u05DF', '\u05E4\u05E8\u05D5\u05E4\u05D9\u05DC', '\u05EA\u05D9\u05D0\u05D5\u05E8'],
+      editBtn: '\u05E2\u05E8\u05D5\u05DA \u05D0\u05EA \u05D4\u05EA\u05E9\u05D5\u05D1\u05D5\u05EA \u05E9\u05DC\u05D9',
+      ptUnit: "\u05E0\u05E7'",
+      personaDisplay: {
+        'The Institutionalist': { name: '\u05D4\u05DE\u05D5\u05E1\u05D3\u05D9', desc: '\u05DE\u05DE\u05D5\u05E7\u05D3 \u05D1\u05D9\u05E2\u05D9\u05DC\u05D5\u05EA \u05D5\u05D1\u05E0\u05D9\u05D9\u05EA \u05DE\u05E2\u05E8\u05DB\u05D5\u05EA.' },
+        'The Advanced Architect': { name: '\u05D4\u05D0\u05D3\u05E8\u05D9\u05DB\u05DC \u05D4\u05DE\u05EA\u05E7\u05D3\u05DD', desc: '\u05D9\u05D3\u05E2 \u05D2\u05D1\u05D5\u05D4, \u05DE\u05D5\u05D2\u05D1\u05DC \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D7\u05D1\u05D9\u05D5\u05DF \u05D1\u05D9\u05E6\u05D5\u05E2.' },
+        'The Informed Generalist': { name: '\u05D4\u05D2\u05E0\u05E8\u05DC\u05D9\u05E1\u05D8 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05DF', desc: '\u05E2\u05D5\u05E7\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05D8\u05D5\u05EA \u05E2\u05D1\u05D5\u05D3\u05D4 \u05DE\u05D5\u05DE\u05DC\u05E6\u05D5\u05EA \u05D0\u05DA \u05D7\u05E1\u05E8 \u05E2\u05D5\u05DE\u05E7 \u05D4\u05D2\u05E0\u05EA\u05D9.' },
+        'The Reactive Investor': { name: '\u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05D4\u05E8\u05D9\u05D0\u05E7\u05D8\u05D9\u05D1\u05D9', desc: '\u05D4\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4 \u05DE\u05D5\u05E0\u05E2\u05EA \u05E2\u05DC \u05D9\u05D3\u05D9 \u05EA\u05E0\u05D5\u05E2\u05D5\u05EA \u05E9\u05D5\u05E7 \u05D1\u05DE\u05E7\u05D5\u05DD \u05DC\u05D5\u05D2\u05D9\u05E7\u05D4.' },
+        'The At-Risk Investor': { name: '\u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05D1\u05E1\u05D9\u05DB\u05D5\u05DF', desc: '\u05D7\u05E9\u05D9\u05E4\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D4 \u05DC\u05EA\u05E0\u05D5\u05D3\u05EA\u05D9\u05D5\u05EA \u05D5\u05D3\u05DC\u05D9\u05E4\u05D4 \u05EA\u05E4\u05E2\u05D5\u05DC\u05D9\u05EA.' }
+      },
+      matrixRows: [
+        { score: '9 \u2013 10', persona: '\u05D4\u05DE\u05D5\u05E1\u05D3\u05D9', desc: '\u05DE\u05DE\u05D5\u05E7\u05D3 \u05D1\u05D9\u05E2\u05D9\u05DC\u05D5\u05EA \u05D5\u05D1\u05E0\u05D9\u05D9\u05EA \u05DE\u05E2\u05E8\u05DB\u05D5\u05EA.' },
+        { score: '7 \u2013 8.9', persona: '\u05D4\u05D0\u05D3\u05E8\u05D9\u05DB\u05DC \u05D4\u05DE\u05EA\u05E7\u05D3\u05DD', desc: '\u05D9\u05D3\u05E2 \u05D2\u05D1\u05D5\u05D4, \u05DE\u05D5\u05D2\u05D1\u05DC \u05E2\u05DC \u05D9\u05D3\u05D9 \u05D7\u05D1\u05D9\u05D5\u05DF \u05D1\u05D9\u05E6\u05D5\u05E2.' },
+        { score: '5 \u2013 6.9', persona: '\u05D4\u05D2\u05E0\u05E8\u05DC\u05D9\u05E1\u05D8 \u05D4\u05DE\u05E2\u05D5\u05D3\u05DB\u05DF', desc: '\u05E2\u05D5\u05E7\u05D1 \u05D0\u05D7\u05E8 \u05E9\u05D9\u05D8\u05D5\u05EA \u05E2\u05D1\u05D5\u05D3\u05D4 \u05DE\u05D5\u05DE\u05DC\u05E6\u05D5\u05EA \u05D0\u05DA \u05D7\u05E1\u05E8 \u05E2\u05D5\u05DE\u05E7 \u05D4\u05D2\u05E0\u05EA\u05D9.' },
+        { score: '3 \u2013 4.9', persona: '\u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05D4\u05E8\u05D9\u05D0\u05E7\u05D8\u05D9\u05D1\u05D9', desc: '\u05D4\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4 \u05DE\u05D5\u05E0\u05E2\u05EA \u05E2\u05DC \u05D9\u05D3\u05D9 \u05EA\u05E0\u05D5\u05E2\u05D5\u05EA \u05E9\u05D5\u05E7 \u05D1\u05DE\u05E7\u05D5\u05DD \u05DC\u05D5\u05D2\u05D9\u05E7\u05D4.' },
+        { score: '0 \u2013 2.9', persona: '\u05D4\u05DE\u05E9\u05E7\u05D9\u05E2 \u05D1\u05E1\u05D9\u05DB\u05D5\u05DF', desc: '\u05D7\u05E9\u05D9\u05E4\u05D4 \u05D2\u05D1\u05D5\u05D4\u05D4 \u05DC\u05EA\u05E0\u05D5\u05D3\u05EA\u05D9\u05D5\u05EA \u05D5\u05D3\u05DC\u05D9\u05E4\u05D4 \u05EA\u05E4\u05E2\u05D5\u05DC\u05D9\u05EA.' }
+      ]
+    }
+  };
+
+  function setLang(lang) {
+    currentLang = lang;
+    localStorage.setItem('surveyLang', lang);
+    var t = i18n[lang];
+
+    document.documentElement.lang = lang;
+    document.documentElement.dir = t.dir;
+    document.title = t.title;
+    document.getElementById('langToggle').textContent = t.toggleLabel;
+
+    // Header
+    document.querySelector('.survey-header h1').textContent = t.title;
+    document.querySelector('.survey-header p').textContent = t.subtitle;
+    document.getElementById('progressLabel').textContent = t.progressLabel;
+
+    // Contact section (first section-card)
+    var sectionCards = document.querySelectorAll('#surveyForm .section-card');
+    sectionCards[0].querySelector('.section-title').innerHTML = t.contactTitle;
+    var contactFields = sectionCards[0].querySelectorAll('.contact-field');
+    contactFields[0].querySelector('label').innerHTML = t.nameLabel + ' <span class="optional">' + t.optional + '</span>';
+    contactFields[0].querySelector('input').placeholder = t.namePlaceholder;
+    contactFields[1].querySelector('label').innerHTML = t.emailLabel + ' <span class="optional">' + t.optional + '</span>';
+    contactFields[1].querySelector('input').placeholder = t.emailPlaceholder;
+    contactFields[2].querySelector('label').innerHTML = t.phoneLabel + ' <span class="optional">' + t.optional + '</span>';
+    contactFields[2].querySelector('input').placeholder = t.phonePlaceholder;
+
+    // Section titles (skip contact card at index 0)
+    for (var s = 1; s < sectionCards.length; s++) {
+      var titleEl = sectionCards[s].querySelector('.section-title');
+      if (titleEl && t.sectionTitles[s - 1]) titleEl.textContent = t.sectionTitles[s - 1];
+    }
+
+    // Questions & options
+    for (var q = 1; q <= TOTAL_QUESTIONS; q++) {
+      var qEl = document.querySelector('[data-q="' + q + '"]');
+      if (!qEl || !t.questions[q]) continue;
+      qEl.querySelector('.question-label').textContent = t.questions[q].label;
+      var note = qEl.querySelector('.question-note');
+      if (note) note.textContent = t.questions[q].note || '';
+      var optionLis = qEl.querySelectorAll('.options-list li');
+      t.questions[q].options.forEach(function(text, idx) {
+        var spans = optionLis[idx].querySelectorAll('span');
+        if (spans.length >= 2) spans[spans.length - 1].textContent = text;
+      });
+      qEl.querySelector('.validation-msg').textContent = t.validationMsg;
+    }
+
+    // Submit button
+    var btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.textContent = btnSubmit.dataset.mode === 'update' ? t.update : t.submit;
+
+    // Results page
+    document.querySelector('.result-header h2').textContent = t.resultsTitle;
+    document.querySelector('.score-of').textContent = t.scoreOf;
+    var breakdownCards = document.querySelectorAll('#results .breakdown-card h3');
+    if (breakdownCards[0]) breakdownCards[0].textContent = t.breakdownTitle;
+    if (breakdownCards[1]) breakdownCards[1].textContent = t.matrixTitle;
+    var matrixHeaders = document.querySelectorAll('#matrixTable thead th');
+    t.matrixHeaders.forEach(function(h, idx) { if (matrixHeaders[idx]) matrixHeaders[idx].textContent = h; });
+    var matrixRows = document.querySelectorAll('#matrixTable tbody tr');
+    t.matrixRows.forEach(function(row, idx) {
+      var cells = matrixRows[idx].querySelectorAll('td');
+      cells[0].textContent = row.score;
+      cells[1].textContent = row.persona;
+      cells[2].textContent = row.desc;
+    });
+    document.getElementById('btnEditAnswers').textContent = t.editBtn;
+
+    // Re-render results if visible
+    var resultsEl = document.getElementById('results');
+    if (resultsEl.style.display === 'block') {
+      var rec = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
+      if (rec) showResults(rec);
+    }
+  }
+
   const TOTAL_QUESTIONS = 12;
   const SCORED_QUESTIONS = 9; // only Q1–Q9 count toward the score
 
@@ -604,21 +995,26 @@
 
   // ── Show results page ──
   function showResults(record) {
+    var t = i18n[currentLang];
     const persona = personas.find(p => record.finalScore >= p.min && record.finalScore <= p.max) || personas[personas.length - 1];
+    var dp = t.personaDisplay[persona.name] || { name: persona.name, desc: persona.desc };
     document.getElementById('survey').style.display = 'none';
     document.getElementById('results').style.display = 'block';
     document.getElementById('finalScore').textContent = record.finalScore % 1 === 0 ? record.finalScore : record.finalScore.toFixed(1);
-    document.getElementById('personaName').textContent = persona.name;
-    document.getElementById('personaDesc').textContent = persona.desc;
+    document.getElementById('personaName').textContent = dp.name;
+    document.getElementById('personaDesc').textContent = dp.desc;
 
     const list = document.getElementById('breakdownList');
-    list.innerHTML = record.answers.map(r => `
-      <div class="breakdown-row">
-        <span class="breakdown-q">Q${r.question}</span>
-        <span class="breakdown-answer"><strong>${r.questionLabel}</strong><br/>${r.answer}</span>
-        <span class="breakdown-pts">${r.points} pt${r.points !== 1 ? 's' : ''}</span>
-      </div>
-    `).join('');
+    list.innerHTML = record.answers.map(r => {
+      var qLabel = t.questionLabelsShort[r.question] || r.questionLabel;
+      var aKey = record.selections['q' + r.question];
+      var aLabel = (t.answerLabelsDisplay[r.question] && t.answerLabelsDisplay[r.question][aKey]) || r.answer;
+      return '<div class="breakdown-row">' +
+        '<span class="breakdown-q">Q' + r.question + '</span>' +
+        '<span class="breakdown-answer"><strong>' + qLabel + '</strong><br/>' + aLabel + '</span>' +
+        '<span class="breakdown-pts">' + r.points + ' ' + t.ptUnit + '</span>' +
+        '</div>';
+    }).join('');
 
     document.querySelectorAll('#matrixTable tbody tr').forEach(tr => {
       tr.classList.remove('active-row');
@@ -639,6 +1035,14 @@
     }).catch(err => console.warn('Sheet save failed:', err));
   }
 
+  // ── Apply saved language ──
+  setLang(currentLang);
+
+  // ── Toggle language ──
+  document.getElementById('langToggle').addEventListener('click', function() {
+    setLang(currentLang === 'en' ? 'he' : 'en');
+  });
+
   // ── Check for existing submission on load ──
   const existing = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
   if (existing) {
@@ -653,7 +1057,9 @@
     document.getElementById('survey').style.display = 'block';
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || 'null');
     restoreForm(saved);
-    document.getElementById('btnSubmit').textContent = 'Update & See My Score';
+    var btnSubmit = document.getElementById('btnSubmit');
+    btnSubmit.dataset.mode = 'update';
+    btnSubmit.textContent = i18n[currentLang].update;
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
 
