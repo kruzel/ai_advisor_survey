@@ -6,9 +6,9 @@
 2. Name it **"Survey Responses"** (or anything you like).
 3. In **Row 1**, add these headers (exactly):
 
-| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y |
-|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
-| timestamp | name | email | phone | finalScore | totalRaw | persona | isUpdate | Q1_answer | Q1_pts | Q2_answer | Q2_pts | Q3_answer | Q3_pts | Q4_answer | Q4_pts | Q5_answer | Q5_pts | Q6_answer | Q6_pts | Q7_answer | Q7_pts | Q8_answer | Q8_pts | Q9_answer | Q9_pts |
+| A | B | C | D | E | F | G | H | I | J | K | L | M | N | O | P | Q | R | S | T | U | V | W | X | Y | Z | AA | AB | AC | AD | AE |
+|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|---|
+| timestamp | name | email | phone | finalScore | totalRaw | persona | isUpdate | Q1_answer | Q1_pts | Q2_answer | Q2_pts | Q3_answer | Q3_pts | Q4_answer | Q4_pts | Q5_answer | Q5_pts | Q6_answer | Q6_pts | Q7_answer | Q7_pts | Q8_answer | Q8_pts | Q9_answer | Q9_pts | Q10_answer | Q10_pts | Q11_answer | Q11_pts | Q12_answer | Q12_pts |
 
 ## Step 2: Create the Apps Script
 
@@ -37,7 +37,10 @@ function doPost(e) {
     data.Q6_answer, data.Q6_pts,
     data.Q7_answer, data.Q7_pts,
     data.Q8_answer, data.Q8_pts,
-    data.Q9_answer, data.Q9_pts
+    data.Q9_answer, data.Q9_pts,
+    data.Q10_answer, data.Q10_pts,
+    data.Q11_answer, data.Q11_pts,
+    data.Q12_answer, data.Q12_pts
   ]);
 
   return ContentService

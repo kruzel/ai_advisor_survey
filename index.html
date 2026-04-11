@@ -433,6 +433,52 @@
       </div>
     </div>
 
+    <!-- ── Section 5 ── -->
+    <div class="section-card">
+      <div class="section-title">Section 5 — The Trust &amp; Delegation Hierarchy</div>
+
+      <!-- Q10 -->
+      <div class="question" data-q="10">
+        <span class="question-label">10. What is your primary stance on trusting an AI-driven investment agent?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q10" value="1" data-pts="0" /><span class="option-number">10.1</span><span>Human-Only: I only trust the intuition and accountability of a human advisor.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q10" value="2" data-pts="1" /><span class="option-number">10.2</span><span>Conditional Trust: I trust AI recommendations only if I am provided with a detailed logical explanation for every move.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q10" value="3" data-pts="2" /><span class="option-number">10.3</span><span>Strategic Trust: I trust the AI's data-driven nature and prefer it over human emotional bias.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q10" value="4" data-pts="2" /><span class="option-number">10.4</span><span>Full Autonomy: I trust a verified AI agent to manage and execute my investments automatically.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+
+      <!-- Q11 -->
+      <div class="question" data-q="11">
+        <span class="question-label">11. How much "Discretionary Authority" are you willing to grant an automated system?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q11" value="1" data-pts="0" /><span class="option-number">11.1</span><span>Zero Discretion: The agent should only alert me to opportunities; I will execute all trades manually.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q11" value="2" data-pts="1" /><span class="option-number">11.2</span><span>Veto Power: The agent can draft the trades, but I must click "Approve" before anything happens.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q11" value="3" data-pts="2" /><span class="option-number">11.3</span><span>Guarded Autonomy: The agent can trade automatically within pre-set risk limits or "kill-switches."</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q11" value="4" data-pts="2" /><span class="option-number">11.4</span><span>Full Mandate: The agent has full authority to rebalance and hedge my portfolio 24/7 without my intervention.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+    </div>
+
+    <!-- ── Section 6 ── -->
+    <div class="section-card">
+      <div class="section-title">Section 6 — Information Density &amp; Logic Transparency</div>
+
+      <!-- Q12 -->
+      <div class="question" data-q="12">
+        <span class="question-label">12. What level of information do you require from an AI agent to feel "in control"?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="q12" value="1" data-pts="2" /><span class="option-number">12.1</span><span>The Deep Audit: I want full transparency: raw data sources, correlation matrices, and a list of alternative strategies the AI rejected.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q12" value="2" data-pts="1" /><span class="option-number">12.2</span><span>The Executive Memo: A clear, 3-sentence summary of the logic, the specific goal of the move, and the risk/reward impact.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q12" value="3" data-pts="0" /><span class="option-number">12.3</span><span>The Bottom Line: I don't need the math; just show me the final trade and the impact on my projected return.</span></label></li>
+          <li><label class="option-label"><input type="radio" name="q12" value="4" data-pts="1" /><span class="option-number">12.4</span><span>The Visual Map: I prefer interactive charts showing my portfolio's "Before vs. After" risk profile.</span></label></li>
+        </ul>
+        <div class="validation-msg">Please select an answer.</div>
+      </div>
+    </div>
+
     <button type="submit" class="btn-submit" id="btnSubmit">Submit &amp; See My Score</button>
   </form>
 </div>
@@ -474,7 +520,7 @@
 <script>
 (function () {
   const STORAGE_KEY = 'surveySubmission';
-  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbw4gMVoB9McqcVOAZrcmafXr6id4GRFIPyT_YuJvJXjk8D7iqO-froEGdzYs2Iv06uqmw/exec';
+  const GOOGLE_SCRIPT_URL = 'https://script.google.com/macros/s/AKfycbxYruhmLes2MGyGwRajmxkwrf0JMXW_E0dJEOn45hSFb5J_CqwTlZZPFSqZoUKpZv65/exec';
 
   const questionLabels = {
     1: 'How do you currently manage your liquid assets?',
@@ -485,7 +531,10 @@
     6: 'Mechanism for controlling "Downside Risk"?',
     7: 'How do you handle "Hidden Correlations"?',
     8: 'Reaction time to major macro events?',
-    9: 'Biggest "Execution Regret"?'
+    9: 'Biggest "Execution Regret"?',
+    10: 'Primary stance on trusting an AI-driven investment agent?',
+    11: 'How much "Discretionary Authority" to grant an automated system?',
+    12: 'What level of information do you require to feel "in control"?'
   };
 
   const answerLabels = {
@@ -497,7 +546,10 @@
     6: { 1: '6.1 – Portfolio Insurance',  2: '6.2 – Stop-Losses',  3: '6.3 – Manual Intervention' },
     7: { 1: '7.1 – Software (Beta/Correlation Matrix)',  2: '7.2 – Manual awareness',  3: '7.3 – Broad diversification only' },
     8: { 1: '8.1 – Minutes',  2: '8.2 – Hours',  3: '8.3 – Days / Weeks' },
-    9: { 1: '9.1 – Complexity',  2: '9.2 – Omission',  3: '9.3 – Commission' }
+    9: { 1: '9.1 – Complexity',  2: '9.2 – Omission',  3: '9.3 – Commission' },
+    10: { 1: '10.1 – Human-Only',  2: '10.2 – Conditional Trust',  3: '10.3 – Strategic Trust',  4: '10.4 – Full Autonomy' },
+    11: { 1: '11.1 – Zero Discretion',  2: '11.2 – Veto Power',  3: '11.3 – Guarded Autonomy',  4: '11.4 – Full Mandate' },
+    12: { 1: '12.1 – The Deep Audit',  2: '12.2 – The Executive Memo',  3: '12.3 – The Bottom Line',  4: '12.4 – The Visual Map' }
   };
 
   const personas = [
@@ -507,6 +559,9 @@
     { min: 3,   max: 4.9,  name: 'The Reactive Investor',   desc: 'Strategy is driven by market moves rather than logic.' },
     { min: 0,   max: 2.9,  name: 'The At-Risk Investor',    desc: 'High exposure to volatility and operational leakage.' }
   ];
+
+  const TOTAL_QUESTIONS = 12;
+  const SCORED_QUESTIONS = 9; // only Q1–Q9 count toward the score
 
   // ── Highlight selected option ──
   document.querySelectorAll('.option-label input[type="radio"]').forEach(radio => {
@@ -522,11 +577,11 @@
   // ── Progress ──
   function updateProgress() {
     let answered = 0;
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
       if (document.querySelector(`input[name="q${i}"]:checked`)) answered++;
     }
-    document.getElementById('progressText').textContent = `${answered} / 9`;
-    document.getElementById('progressFill').style.width = `${(answered / 9) * 100}%`;
+    document.getElementById('progressText').textContent = `${answered} / ${TOTAL_QUESTIONS}`;
+    document.getElementById('progressFill').style.width = `${(answered / TOTAL_QUESTIONS) * 100}%`;
   }
 
   // ── Restore previous answers into the form ──
@@ -608,7 +663,7 @@
 
     // Validate questions
     let valid = true;
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
       const q = document.querySelector(`.question[data-q="${i}"]`);
       if (!document.querySelector(`input[name="q${i}"]:checked`)) {
         q.classList.add('invalid');
@@ -632,12 +687,12 @@
     const selections = {};
     let totalRaw = 0;
 
-    for (let i = 1; i <= 9; i++) {
+    for (let i = 1; i <= TOTAL_QUESTIONS; i++) {
       const checked = document.querySelector(`input[name="q${i}"]:checked`);
       const choiceValue = checked.value;
       const pts = Number(checked.dataset.pts);
       const label = answerLabels[i][choiceValue];
-      totalRaw += pts;
+      if (i <= SCORED_QUESTIONS) totalRaw += pts;
       results.push({ question: i, questionLabel: questionLabels[i], answer: label, points: pts });
       selections[`q${i}`] = choiceValue;
     }
