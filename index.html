@@ -80,6 +80,7 @@
     /* Question */
     .question { margin-bottom: 28px; }
     .question:last-child { margin-bottom: 8px; }
+    .free-funds-question { margin-top: 20px; padding-top: 18px; border-top: 1px solid var(--border); }
     .question-label {
       font-size: 1.05rem;
       font-weight: 600;
@@ -343,6 +344,16 @@
           <label>Phone <span class="optional">(optional)</span></label>
           <input type="tel" id="userPhone" placeholder="e.g. +1 555-123-4567" autocomplete="tel" />
         </div>
+      </div>
+
+      <!-- Free Funds Qualifier -->
+      <div class="question free-funds-question" id="freeFundsQuestion">
+        <span class="question-label" id="freeFundsLabel">Do you have more than $100,000 in free (liquid) funds available for investment?</span>
+        <ul class="options-list">
+          <li><label class="option-label"><input type="radio" name="freeFunds" value="yes" /><span class="option-number">✓</span><span id="freeFundsYes">Yes</span></label></li>
+          <li><label class="option-label"><input type="radio" name="freeFunds" value="no" /><span class="option-number">✗</span><span id="freeFundsNo">No</span></label></li>
+        </ul>
+        <div class="validation-msg" id="freeFundsValidation">Please select an answer.</div>
       </div>
     </div>
 
@@ -621,6 +632,10 @@
       namePlaceholder: 'e.g. John Smith',
       emailPlaceholder: 'e.g. john@example.com',
       phonePlaceholder: 'e.g. +1 555-123-4567',
+      freeFundsLabel: 'Do you have more than $100,000 in free (liquid) funds available for investment?',
+      freeFundsYes: 'Yes',
+      freeFundsNo: 'No',
+      freeFundsValidation: 'Please select an answer.',
       sectionTitles: [
         'Section 1 \u2014 Profile & Management',
         'Section 2 \u2014 Knowledge & Strategy',
@@ -755,8 +770,12 @@
       namePlaceholder: '\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: \u05D9\u05E9\u05E8\u05D0\u05DC \u05D9\u05E9\u05E8\u05D0\u05DC\u05D9',
       emailPlaceholder: '\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: israel@example.com',
       phonePlaceholder: '\u05DC\u05D3\u05D5\u05D2\u05DE\u05D4: 050-123-4567',
+      freeFundsLabel: '\u05D4\u05D0\u05DD \u05D9\u05E9 \u05DC\u05DA \u05D9\u05D5\u05EA\u05E8 \u05DE-$100,000 \u05D1\u05DB\u05E1\u05E4\u05D9\u05DD \u05E0\u05D6\u05D9\u05DC\u05D9\u05DD (\u05E4\u05E0\u05D5\u05D9\u05D9\u05DD) \u05D6\u05DE\u05D9\u05E0\u05D9\u05DD \u05DC\u05D4\u05E9\u05E7\u05E2\u05D4?',
+      freeFundsYes: '\u05DB\u05DF',
+      freeFundsNo: '\u05DC\u05D0',
+      freeFundsValidation: '\u05D0\u05E0\u05D0 \u05D1\u05D7\u05E8 \u05EA\u05E9\u05D5\u05D1\u05D4.',
       sectionTitles: [
-        '\u05D7\u05DC\u05E7 1 \u2014 \u05E4\u05E8\u05D5\u05E4\u05D9\u05DC \u05D5\u05E0\u05D9\u05D4\u05D5\u05DC',
+        '\u05D7\u05DC\u05E7 1\u2014 \u05E4\u05E8\u05D5\u05E4\u05D9\u05DC \u05D5\u05E0\u05D9\u05D4\u05D5\u05DC',
         '\u05D7\u05DC\u05E7 2 \u2014 \u05D9\u05D3\u05E2 \u05D5\u05D0\u05E1\u05D8\u05E8\u05D8\u05D2\u05D9\u05D4',
         '\u05D7\u05DC\u05E7 3 \u2014 \u05E1\u05D9\u05DB\u05D5\u05DF \u05D5\u05E4\u05D9\u05D6\u05D5\u05E8',
         '\u05D7\u05DC\u05E7 4 \u2014 \u05E4\u05E2\u05E8 \u05D4\u05EA\u05D2\u05D5\u05D1\u05D4',
@@ -913,7 +932,13 @@
     contactFields[2].querySelector('label').innerHTML = t.phoneLabel + ' <span class="optional">' + t.optional + '</span>';
     contactFields[2].querySelector('input').placeholder = t.phonePlaceholder;
 
-    // Section titles (skip contact card at index 0)
+    // Free funds question
+    document.getElementById('freeFundsLabel').textContent = t.freeFundsLabel;
+    document.getElementById('freeFundsYes').textContent = t.freeFundsYes;
+    document.getElementById('freeFundsNo').textContent = t.freeFundsNo;
+    document.getElementById('freeFundsValidation').textContent = t.freeFundsValidation;
+
+    // Section titles(skip contact card at index 0)
     for (var s = 1; s < sectionCards.length; s++) {
       var titleEl = sectionCards[s].querySelector('.section-title');
       if (titleEl && t.sectionTitles[s - 1]) titleEl.textContent = t.sectionTitles[s - 1];
@@ -993,6 +1018,13 @@
     document.getElementById('userName').value = saved.name || '';
     document.getElementById('userEmail').value = saved.email || '';
     document.getElementById('userPhone').value = saved.phone || '';
+    if (saved.freeFunds) {
+      const ffRadio = document.querySelector(`input[name="freeFunds"][value="${saved.freeFunds}"]`);
+      if (ffRadio) {
+        ffRadio.checked = true;
+        ffRadio.closest('.option-label').classList.add('selected');
+      }
+    }
     if (saved.selections) {
       Object.entries(saved.selections).forEach(([name, value]) => {
         const radio = document.querySelector(`input[name="${name}"][value="${value}"]`);
@@ -1104,6 +1136,14 @@
     } else {
       nameField.closest('.contact-field').classList.remove('invalid');
     }
+    // Validate free funds question
+    const freeFundsQ = document.getElementById('freeFundsQuestion');
+    if (!document.querySelector('input[name="freeFunds"]:checked')) {
+      freeFundsQ.classList.add('invalid');
+      valid = false;
+    } else {
+      freeFundsQ.classList.remove('invalid');
+    }
     if (!valid) {
       const firstInvalid = document.querySelector('.question.invalid, .contact-field.invalid');
       if (firstInvalid) firstInvalid.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -1114,6 +1154,7 @@
     const userName  = nameVal;
     const userEmail = document.getElementById('userEmail').value.trim();
     const userPhone = document.getElementById('userPhone').value.trim();
+    const freeFunds = document.querySelector('input[name="freeFunds"]:checked').value;
 
     // Collect answers
     const results = [];
@@ -1140,6 +1181,7 @@
       name: userName,
       email: userEmail,
       phone: userPhone,
+      freeFunds,
       totalRaw,
       finalScore,
       persona: persona.name,
@@ -1156,6 +1198,7 @@
       name: userName,
       email: userEmail,
       phone: userPhone,
+      freeFunds: record.freeFunds,
       finalScore: record.finalScore,
       totalRaw: record.totalRaw,
       persona: record.persona,
