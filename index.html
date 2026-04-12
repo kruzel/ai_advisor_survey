@@ -213,6 +213,47 @@
     }
     .persona-desc { font-size: .93rem; opacity: .85; max-width: 560px; margin: 0 auto; }
 
+    /* Ranking card */
+    .ranking-card {
+      background: var(--card);
+      border-radius: 12px;
+      padding: 24px 28px;
+      margin-bottom: 16px;
+      box-shadow: 0 1px 6px rgba(0,0,0,.06);
+      text-align: center;
+    }
+    .ranking-card h3 { font-size: 1.05rem; margin-bottom: 16px; color: var(--primary); }
+    .ranking-percentile {
+      font-size: 2rem;
+      font-weight: 800;
+      color: var(--accent);
+      margin-bottom: 4px;
+    }
+    .ranking-detail {
+      font-size: .93rem;
+      color: var(--muted);
+      margin-bottom: 14px;
+    }
+    .ranking-bar-wrap {
+      height: 12px;
+      border-radius: 6px;
+      background: #e0e5ec;
+      overflow: hidden;
+      max-width: 400px;
+      margin: 0 auto;
+    }
+    .ranking-bar-fill {
+      height: 100%;
+      border-radius: 6px;
+      background: linear-gradient(90deg, var(--accent), var(--success));
+      transition: width .6s ease;
+    }
+    .ranking-loading {
+      font-size: .9rem;
+      color: var(--muted);
+      font-style: italic;
+    }
+
     /* Breakdown */
     .breakdown-card {
       background: var(--card);
@@ -545,6 +586,13 @@
     <p class="persona-desc" id="personaDesc"></p>
   </div>
 
+  <div class="ranking-card" id="rankingCard">
+    <h3 id="rankingTitle">Your Ranking</h3>
+    <div id="rankingContent">
+      <p class="ranking-loading" id="rankingLoading">Loading ranking data…</p>
+    </div>
+  </div>
+
   <div class="breakdown-card">
     <h3>Answer Breakdown</h3>
     <div id="breakdownList"></div>
@@ -736,6 +784,12 @@
       matrixTitle: 'The Sophistication Matrix',
       matrixHeaders: ['Score', 'Persona', 'Description'],
       editBtn: 'Edit My Answers',
+      rankingTitle: 'Your Ranking',
+      rankingLoading: 'Loading ranking data\u2026',
+      rankingHigher: 'You scored higher than',
+      rankingOf: 'of respondents',
+      rankingTotal: 'respondents so far',
+      rankingError: 'Ranking data is currently unavailable.',
       ptUnit: 'pts',
       personaDisplay: {
         'The Institutionalist': { name: 'The Institutionalist', desc: 'Focuses on efficiency and system-building.' },
@@ -887,6 +941,12 @@
       matrixTitle: '\u05DE\u05D8\u05E8\u05D9\u05E6\u05EA \u05D4\u05EA\u05D7\u05DB\u05D5\u05DD',
       matrixHeaders: ['\u05E6\u05D9\u05D5\u05DF', '\u05E4\u05E8\u05D5\u05E4\u05D9\u05DC', '\u05EA\u05D9\u05D0\u05D5\u05E8'],
       editBtn: '\u05E2\u05E8\u05D5\u05DA \u05D0\u05EA \u05D4\u05EA\u05E9\u05D5\u05D1\u05D5\u05EA \u05E9\u05DC\u05D9',
+      rankingTitle: '\u05D4\u05D3\u05D9\u05E8\u05D5\u05D2 \u05E9\u05DC\u05DA',
+      rankingLoading: '\u05D8\u05D5\u05E2\u05DF \u05E0\u05EA\u05D5\u05E0\u05D9 \u05D3\u05D9\u05E8\u05D5\u05D2\u2026',
+      rankingHigher: '\u05D4\u05E6\u05D9\u05D5\u05DF \u05E9\u05DC\u05DA \u05D2\u05D1\u05D5\u05D4 \u05DE',
+      rankingOf: '\u05DE\u05D4\u05DE\u05E9\u05D9\u05D1\u05D9\u05DD',
+      rankingTotal: '\u05DE\u05E9\u05D9\u05D1\u05D9\u05DD \u05E2\u05D3 \u05DB\u05D4',
+      rankingError: '\u05E0\u05EA\u05D5\u05E0\u05D9 \u05D4\u05D3\u05D9\u05E8\u05D5\u05D2 \u05D0\u05D9\u05E0\u05DD \u05D6\u05DE\u05D9\u05E0\u05D9\u05DD \u05DB\u05E8\u05D2\u05E2.',
       ptUnit: "\u05E0\u05E7'",
       personaDisplay: {
         'The Institutionalist': { name: '\u05D4\u05DE\u05D5\u05E1\u05D3\u05D9', desc: '\u05DE\u05DE\u05D5\u05E7\u05D3 \u05D1\u05D9\u05E2\u05D9\u05DC\u05D5\u05EA \u05D5\u05D1\u05E0\u05D9\u05D9\u05EA \u05DE\u05E2\u05E8\u05DB\u05D5\u05EA.' },
@@ -966,6 +1026,8 @@
     // Results page
     document.querySelector('.result-header h2').textContent = t.resultsTitle;
     document.querySelector('.score-of').textContent = t.scoreOf;
+    document.getElementById('rankingTitle').textContent = t.rankingTitle;
+    document.getElementById('rankingLoading').textContent = t.rankingLoading;
     var breakdownCards = document.querySelectorAll('#results .breakdown-card h3');
     if (breakdownCards[0]) breakdownCards[0].textContent = t.breakdownTitle;
     if (breakdownCards[1]) breakdownCards[1].textContent = t.matrixTitle;
@@ -1067,6 +1129,38 @@
     });
 
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    // Fetch ranking data
+    fetchRanking(record.finalScore);
+  }
+
+  // ── Fetch ranking from Google Sheet ──
+  function fetchRanking(userScore) {
+    var t = i18n[currentLang];
+    var content = document.getElementById('rankingContent');
+    content.innerHTML = '<p class="ranking-loading" id="rankingLoading">' + t.rankingLoading + '</p>';
+
+    fetch(GOOGLE_SCRIPT_URL + '?action=getScores')
+      .then(function(res) { return res.json(); })
+      .then(function(data) {
+        if (!data || !data.scores || data.scores.length === 0) {
+          content.innerHTML = '<p class="ranking-loading">' + t.rankingError + '</p>';
+          return;
+        }
+        var scores = data.scores.map(Number).filter(function(n) { return !isNaN(n); });
+        var total = scores.length;
+        var below = scores.filter(function(s) { return s < userScore; }).length;
+        var percentile = Math.round((below / total) * 100);
+
+        content.innerHTML =
+          '<div class="ranking-percentile">' + percentile + '%</div>' +
+          '<div class="ranking-detail">' + t.rankingHigher + ' ' + percentile + '% ' + t.rankingOf + '</div>' +
+          '<div class="ranking-bar-wrap"><div class="ranking-bar-fill" style="width:' + percentile + '%"></div></div>' +
+          '<div class="ranking-detail" style="margin-top:10px">' + total + ' ' + t.rankingTotal + '</div>';
+      })
+      .catch(function() {
+        content.innerHTML = '<p class="ranking-loading">' + t.rankingError + '</p>';
+      });
   }
 
   // ── Send to Google Sheets ──
